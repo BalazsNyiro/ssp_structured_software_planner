@@ -1,0 +1,10 @@
+ - ssp is a program planner program.
+   but I need to plan a program - 
+   so I write it without program supported planning,
+   Later I can refactor :-)
+
+ - what is it:
+   - program model in JSON
+   - execution displayed in multi-view model
+   - it's easier to understand a working logic 
+     in execution instead of a frozen moment
