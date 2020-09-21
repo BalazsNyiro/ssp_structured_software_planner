@@ -19,7 +19,7 @@ def canvas_new(Parent, CanvasWidth, CanvasHeight):
     CanvasWidget.bind("<B1-Motion>", mouse_button_pressed_and_moved)
     return CanvasWidget
 
-def root_new(Title):
+def root_new(Title,Width=600, Height=400):
     Root = tkinter.Tk()
     Root.title(Title)
 
@@ -34,6 +34,7 @@ def root_new(Title):
     MenuAbout.add_command(label="Facebook group", compound='left', command=cmd_empty)
     MenuAbout.add_command(label="Contact", compound='left', command=cmd_empty)
 
+    Root.geometry(f"{Width}x{Height}")
     Root.config(menu=MenuBar)
 
     return Root
