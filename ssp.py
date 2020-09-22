@@ -18,23 +18,14 @@ CanvasWidget = None
 # https://stackoverflow.com/questions/43731784/tkinter-canvas-scrollbar-with-grid
 def win_main(Prg, CanvasWidth=800, CanvasHeight=600):
 
-    Root = lib_tkinter.root_new("SSP program planner")
     global CanvasWidget
-    CanvasWidget = lib_tkinter.canvas_new(Root, CanvasWidth, CanvasHeight)
-    CanvasWidget.grid(row=0, column=0, sticky="news")
+    Root, CanvasWidget, ScrollVertical, ScrollHorizontal = lib_tkinter.root_new("SSP program planner")
 
     ObjSelected = CanvasWidget.create_rectangle(0, 0, 50, 50, fill="blue")
     ObjSelected = CanvasWidget.create_rectangle(CanvasWidth-50, CanvasHeight-50, CanvasWidth, CanvasHeight, fill="blue")
 
-    # cell resizabe, flexible:
 
-    ScrollVertical = tkinter.Scrollbar(Root, command=CanvasWidget.yview, orient="vertical")
-    ScrollHorizontal = tkinter.Scrollbar(Root, command=CanvasWidget.xview, orient="horizontal")
     CanvasWidget.configure(scrollregion=CanvasWidget.bbox("all"))
-    CanvasWidget.configure(yscrollcommand=ScrollVertical.set)
-    CanvasWidget.configure(xscrollcommand=ScrollHorizontal.set)
-    ScrollVertical.grid(row=0, column=1, sticky=tkinter.NS)
-    ScrollHorizontal.grid(row=1, column=0, sticky=tkinter.EW)
     Root.mainloop()
 
 win_main(PrgGlobal)
