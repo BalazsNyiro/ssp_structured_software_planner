@@ -4,7 +4,7 @@
 import os, sys
 DirPrgParent = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(DirPrgParent, "src"))
-PrgGlobal = {"DirPrgParent":  DirPrgParent}
+Prg = {"DirPrgParent":  DirPrgParent, "Gui": dict()}
 
 import lib_tkinter
 # Root, CanvasWidget = lib_tkinter.win_root()
@@ -19,13 +19,13 @@ CanvasWidget = None
 def win_main(Prg, CanvasWidth=800, CanvasHeight=600):
 
     global CanvasWidget
-    Root, CanvasWidget, ScrollVertical, ScrollHorizontal = lib_tkinter.root_new("SSP program planner")
+    Root, CanvasWidget = lib_tkinter.root_new(Prg, "SSP program planner")
 
     ObjSelected = CanvasWidget.create_rectangle(0, 0, 50, 50, fill="blue")
     ObjSelected = CanvasWidget.create_rectangle(CanvasWidth-50, CanvasHeight-50, CanvasWidth, CanvasHeight, fill="blue")
 
-
+    # it has to be AFTER DRAWING, on the contrary scrollbar won't detect ratio
     CanvasWidget.configure(scrollregion=CanvasWidget.bbox("all"))
     Root.mainloop()
 
-win_main(PrgGlobal)
+win_main(Prg)

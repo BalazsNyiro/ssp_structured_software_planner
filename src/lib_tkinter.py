@@ -1,15 +1,42 @@
 import tkinter
 
+PrgLib = None
 def cmd_empty():
     pass
 def key(event):
     print("pressed", repr(event.char))
+
+def coord_virtual_x(EventX):
+    Gui = PrgLib["Gui"]
+    return Gui["ZoomX"]*(Gui["CanvasWidth"] * Gui["ScrollHorizontalFirst"] + EventX)
+
+def coord_virtual_y(EventY):
+    Gui = PrgLib["Gui"]
+    return Gui["ZoomY"]*(Gui["CanvasHeight"] * Gui["ScrollVerticalFirst"] + EventY)
+
 def mouse_button_press(event):
-    print("clicked at", event.x, event.y)
+    CoordXvirtual = coord_virtual_x(event.x)
+    CoordYvirtual = coord_virtual_y(event.y)
+    print("clicked at", event.x, event.y, CoordXvirtual, CoordYvirtual)
+
 def mouse_button_release(event):
-    print("release at", event.x, event.y)
+    CoordXvirtual = coord_virtual_x(event.x)
+    CoordYvirtual = coord_virtual_y(event.y)
+    print("release at", event.x, event.y, CoordXvirtual, CoordYvirtual)
+
 def mouse_button_pressed_and_moved(event):
     print("pressed and moving at", event.x, event.y)
+
+def scrollbar_horizontal_set_and_save(First, Last):
+    PrgLib["Gui"]["ScrollHorizontalFirst"] = float(First) # str is the original type? why?
+    PrgLib["Gui"]["ScrollHorizontalLast"] = float(Last)
+    PrgLib["Gui"]["ScrollHorizontal"].set(First, Last)
+
+def scrollbar_vertical_set_and_save(First, Last):
+    PrgLib["Gui"]["ScrollVerticalFirst"] = float(First)
+    PrgLib["Gui"]["ScrollVerticalLast"] = float(Last)
+    PrgLib["Gui"]["ScrollVertical"].set(First, Last)
+
 
 def canvas_new(Parent, CanvasWidth, CanvasHeight):
     CanvasWidget = tkinter.Canvas(Parent, width=CanvasWidth, height=CanvasHeight)
@@ -19,7 +46,10 @@ def canvas_new(Parent, CanvasWidth, CanvasHeight):
     CanvasWidget.bind("<B1-Motion>", mouse_button_pressed_and_moved)
     return CanvasWidget
 
-def root_new(Title,Width=600, Height=400, CanvasWidth=800, CanvasHeight=600):
+def root_new(Prg, Title,Width=600, Height=400, CanvasWidth=800, CanvasHeight=600):
+    global PrgLib
+    PrgLib = Prg
+
     Root = tkinter.Tk()
     Root.title(Title)
 
@@ -45,7 +75,16 @@ def root_new(Title,Width=600, Height=400, CanvasWidth=800, CanvasHeight=600):
     ScrollHorizontal = tkinter.Scrollbar(Root, command=CanvasWidget.xview, orient="horizontal")
     ScrollVertical.grid(row=0, column=1, sticky=tkinter.NS)
     ScrollHorizontal.grid(row=1, column=0, sticky=tkinter.EW)
-    CanvasWidget.configure(yscrollcommand=ScrollVertical.set)
-    CanvasWidget.configure(xscrollcommand=ScrollHorizontal.set)
+    CanvasWidget.configure(yscrollcommand=scrollbar_vertical_set_and_save)
+    CanvasWidget.configure(xscrollcommand=scrollbar_horizontal_set_and_save)
 
-    return Root, CanvasWidget, ScrollVertical, ScrollHorizontal
+    Prg["Gui"]["ScrollVertical"] = ScrollVertical
+    Prg["Gui"]["ScrollHorizontal"] = ScrollHorizontal
+    Prg["Gui"]["Root"] = Root
+    Prg["Gui"]["CanvasWidget"] = CanvasWidget
+    Prg["Gui"]["CanvasWidth"] = CanvasWidth
+    Prg["Gui"]["CanvasHeight"] = CanvasHeight
+    Prg["Gui"]["ZoomX"] = 1.0
+    Prg["Gui"]["ZoomY"] = 1.0
+
+    return Root, CanvasWidget
