@@ -6,9 +6,9 @@ def log(Par):
     # hide it from calling tree
     pass
 
-
 def double(P):
     return P+P
+
 def add(P1, P2):
     log(P1)
     log(P2)

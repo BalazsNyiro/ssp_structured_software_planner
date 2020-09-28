@@ -11,8 +11,11 @@ import lib_tkinter
 # Root.mainloop()
 
 import debugger
-debugger.prg_start(os.path.join(DirPrgParent, "src", "calc.py"))
-
+Proc = debugger.prg_start(os.path.join(DirPrgParent, "try", "calc.py"))
+debugger.proc_output(Proc)
+debugger.proc_input(Proc, b"next")
+debugger.proc_output(Proc)
+debugger.prg_end(Proc)
 sys.exit(1)
 
 CanvasWidget = None
