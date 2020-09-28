@@ -10,6 +10,16 @@ import lib_tkinter
 # Root, CanvasWidget = lib_tkinter.win_root()
 # Root.mainloop()
 
+import debugger
+Cmd = "/usr/bin/bash"
+Process, FileWrite, FileRead = debugger.proc_start(Cmd)
+ProcOut = debugger.proc_input(b"ls\n", Process, FileRead)
+print(">>> ", ProcOut)
+ProcOut = debugger.proc_input(b"date\n", Process, FileRead)
+print(">>> ", ProcOut)
+ProcOut = debugger.proc_input(b"exit\n", Process, FileRead)
+debugger.proc_end(FileWrite, FileRead)
+sys.exit(1)
 
 import tkinter
 from tkinter import ttk
