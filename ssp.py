@@ -11,18 +11,10 @@ import lib_tkinter
 # Root.mainloop()
 
 import debugger
-Cmd = "/usr/bin/bash"
-Process, FileWrite, FileRead = debugger.proc_start(Cmd)
-ProcOut = debugger.proc_input(b"ls\n", Process, FileRead)
-print(">>> ", ProcOut)
-ProcOut = debugger.proc_input(b"date\n", Process, FileRead)
-print(">>> ", ProcOut)
-ProcOut = debugger.proc_input(b"exit\n", Process, FileRead)
-debugger.proc_end(FileWrite, FileRead)
+debugger.prg_start(os.path.join(DirPrgParent, "src", "calc.py"))
+
 sys.exit(1)
 
-import tkinter
-from tkinter import ttk
 CanvasWidget = None
 
 # https://stackoverflow.com/questions/43731784/tkinter-canvas-scrollbar-with-grid

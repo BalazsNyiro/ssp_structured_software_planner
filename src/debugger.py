@@ -1,18 +1,24 @@
-from subprocess import Popen, PIPE
+# https://eli.thegreenplace.net/2017/interacting-with-a-long-running-child-process-in-python/
+#
+import subprocess
 
-def proc_start(Cmd):
-    FileWrite = open("tmpout", "wb")
-    FileRead = open("tmpout", "r")
+def prg_start(PathPy):
+    print(PathPy)
+    proc = subprocess.Popen(['python3', '-i'],
+                            stdin=subprocess.PIPE,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE)
 
-    Process = Popen(Cmd, stdin = PIPE, stdout = FileWrite, stderr = FileWrite)
-    return Process, FileWrite, FileRead
+    #print(proc.stdout.readline())
 
-def proc_input(Input, Process, FileRead):
-    # if Input[-1] != b"\n":
-    #     Input += b"\n"
-    Process.stdin.write(Input)
-    return FileRead.read()
 
-def proc_end(FileWrite, FileRead):
-    FileWrite.close()
-    FileRead.close()
+    # To avoid deadlocks: careful to: add \n to output, flush output, use
+    # readline() rather than read()
+    proc.stdin.write(b'2+3\n')
+    proc.stdin.flush()
+    print(proc.stdout.readline())
+
+
+    proc.stdin.close()
+    proc.terminate()
+    proc.wait(timeout=0.2)
