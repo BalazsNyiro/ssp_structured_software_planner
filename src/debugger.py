@@ -5,19 +5,52 @@
 import subprocess
 import os, fcntl
 
+LineSep = "\n"
+
 class Step:
 
     def __init__(self, Txt):
         self.Txt = Txt
-        self.Call = "--call--"  in Txt
-        self.Return = "--return--" in Txt
+        self.Call = "--Call--"  in Txt
+        self.Return = "--Return--" in Txt
+        self.End = "<<PrgEnd>>" in Txt
 
-        self.ReturnValue = ""
+        self.ReturnValue = None
         if self.Return:
-            self.ReturnValue = Txt.split("\n")[1].split("->")[1]
+            self.ReturnValue = eval(Txt.split(LineSep)[1].split("->")[1])
+
+        self.FileName = ""
+        self.LineNum = ""
+        self.FunName = ""
+        for Line in Txt.split(LineSep):
+            if not self.FileName:
+                if "> " == Line[0:2]:
+                    FileAndLineNum, self.FunName = Line.split(")", 1)
+                    self.FileName, self.LineNum = FileAndLineNum.split("(")
+                    self.FileName = self.FileName[2:] # "> " removed from line head
+
+        self.Args = dict()
 
 def proc_step(Proc):
-    pass
+    proc_input(Proc, b"step")
+    ProcReply = proc_output(Proc)
+    StepNow = Step(ProcReply)
+    print(StepNow.Txt)
+
+    if StepNow.Call: # Get arguments
+        proc_input(Proc, b"args") #list arguments
+        ProcReplyArgs = proc_output(Proc)
+        print("ProcReplyArgs ", ProcReplyArgs )
+        if ProcReplyArgs.strip(): # if call has any arguments
+            for Line in ProcReplyArgs.split(LineSep):
+                print("Line:", Line)
+                if "=" in Line:
+                    Key, Val = Line.split("=")
+                    Key = Key.strip()
+                    Val = eval(Val)
+                    StepNow.Args[Key] = Val
+
+    return StepNow
 
 def setNonBlocking(fd):
     """
@@ -58,6 +91,6 @@ def proc_output(Proc):
             Lines.append(Line)
 
     AllLines = (b"".join(Lines)).decode('utf-8')
-    print(AllLines)
+    # print(AllLines)
     return AllLines
 
