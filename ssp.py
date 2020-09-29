@@ -12,9 +12,16 @@ import lib_tkinter
 
 import debugger
 Proc = debugger.prg_start(os.path.join(DirPrgParent, "try", "calc.py"))
+
 debugger.proc_output(Proc)
-debugger.proc_input(Proc, b"next")
-debugger.proc_output(Proc)
+while True:
+    debugger.proc_input(Proc, b"step")
+    ProcReply = debugger.proc_output(Proc)
+    if "<<PrgEnd>>" in ProcReply:
+        break
+
+
+
 debugger.prg_end(Proc)
 sys.exit(1)
 
