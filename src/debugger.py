@@ -32,20 +32,16 @@ class StepNext:
         self.Args = dict()
 
 def proc_step_next(Proc):
-    print("\n============================\n")
     proc_input(Proc, b"step")
     ProcReply = proc_output(Proc)
     StepNow = StepNext(ProcReply)
-    print("StepNow.Txt", StepNow.Txt)
+    # print("StepNow.Txt", StepNow.Txt)
 
     # we have to process prev ProcReply,
     # then we can call next debugger statement and process it's reply
     if StepNow.Call:  # Get arguments
-        print("  CALL")
-        proc_input(Proc, b"p 1+2")  # list arguments
+        proc_input(Proc, b"args")  # list arguments
         ProcReplyArgs = proc_output(Proc)
-        print("  ReplyArgs", ProcReplyArgs )
-        print("  ........... ")
         if ProcReplyArgs.strip():  # if call has any arguments
             for Line in ProcReplyArgs.split(LineSep):
                 if "=" in Line:
@@ -53,7 +49,7 @@ def proc_step_next(Proc):
                     Key = Key.strip()
                     Val = eval(Val)
                     StepNow.Args[Key] = Val
-            print("ARGS:", StepNow.Args)
+            # print("ARGS:", StepNow.Args)
     return StepNow
 
 
