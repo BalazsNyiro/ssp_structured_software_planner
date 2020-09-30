@@ -7,11 +7,11 @@ import os, fcntl
 
 LineSep = "\n"
 
-class Step:
+class StepNext:
 
-    def __init__(self, Txt, ProcForPossibleQuestions):
+    def __init__(self, Txt):
         self.Txt = Txt
-        self.Call = "--Call--"  in Txt
+        self.Call = "--Call--" in Txt
         self.Return = "--Return--" in Txt
         self.End = "<<PrgEnd>>" in Txt
 
@@ -30,24 +30,32 @@ class Step:
                     self.FileName = self.FileName[2:] # "> " removed from line head
 
         self.Args = dict()
-        if self.Call: # Get arguments
-            proc_input(ProcForPossibleQuestions, b"args") #list arguments
-            ProcReplyArgs = proc_output(ProcForPossibleQuestions)
-            # print("ProcReplyArgs ", ProcReplyArgs )
-            if ProcReplyArgs.strip(): # if call has any arguments
-                for Line in ProcReplyArgs.split(LineSep):
-                    if "=" in Line:
-                        Key, Val = Line.split("=")
-                        Key = Key.strip()
-                        Val = eval(Val)
-                        self.Args[Key] = Val
 
-def proc_step(Proc):
+def proc_step_next(Proc):
+    print("\n============================\n")
     proc_input(Proc, b"step")
     ProcReply = proc_output(Proc)
-    StepNow = Step(ProcReply, Proc)
-    # print(StepNow.Txt)
+    StepNow = StepNext(ProcReply)
+    print("StepNow.Txt", StepNow.Txt)
+
+    # we have to process prev ProcReply,
+    # then we can call next debugger statement and process it's reply
+    if StepNow.Call:  # Get arguments
+        print("  CALL")
+        proc_input(Proc, b"p 1+2")  # list arguments
+        ProcReplyArgs = proc_output(Proc)
+        print("  ReplyArgs", ProcReplyArgs )
+        print("  ........... ")
+        if ProcReplyArgs.strip():  # if call has any arguments
+            for Line in ProcReplyArgs.split(LineSep):
+                if "=" in Line:
+                    Key, Val = Line.split("=")
+                    Key = Key.strip()
+                    Val = eval(Val)
+                    StepNow.Args[Key] = Val
+            print("ARGS:", StepNow.Args)
     return StepNow
+
 
 def setNonBlocking(fd):
     """
@@ -65,6 +73,7 @@ def prg_start(PathPy):
                             )
     setNonBlocking(Proc.stdout)
     setNonBlocking(Proc.stderr)
+    setNonBlocking(Proc.stdin)
     return Proc
 
 def prg_end(Proc):
@@ -74,18 +83,20 @@ def prg_end(Proc):
 
 def proc_input(Proc, Input):
     if Input[-1] != b"\n":
-        Input += b"\n"
+        Input = Input + b"\n"
+    # print("proc_input", Input)
     Proc.stdin.write(Input)
     Proc.stdin.flush()
 
 def proc_output(Proc):
+    # print("proc_output")
     Lines = []
     while True:
         Line = Proc.stdout.readline()
-        if b"(Pdb)" in Line:
-            break
         if Line != b"":
             Lines.append(Line)
+            if b"(Pdb)" == Line[0:5]:
+                break
 
     AllLines = (b"".join(Lines)).decode('utf-8')
     # print(AllLines)

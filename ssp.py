@@ -13,12 +13,13 @@ import lib_tkinter
 import debugger
 Proc = debugger.prg_start(os.path.join(DirPrgParent, "try", "calc.py"))
 
-debugger.proc_output(Proc)
+
 while True:
-    ProcReply = debugger.proc_step(Proc)
+    ProcReply = debugger.proc_step_next(Proc)
     print(">>  ", ProcReply.FunName)
     print("  ->", ProcReply.Args)
     print("  <-", ProcReply.ReturnValue)
+    # print(" txt", ProcReply.Txt)
     print("\n\n")
     if ProcReply.End:
         break
