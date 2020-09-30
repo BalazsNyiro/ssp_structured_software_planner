@@ -16,7 +16,9 @@ Proc = debugger.prg_start(os.path.join(DirPrgParent, "try", "calc.py"))
 debugger.proc_output(Proc)
 while True:
     ProcReply = debugger.proc_step(Proc)
-    #print(">>", ProcReply.ReturnValue)
+    print(">>  ", ProcReply.FunName)
+    print("  ->", ProcReply.Args)
+    print("  <-", ProcReply.ReturnValue)
     print("\n\n")
     if ProcReply.End:
         break

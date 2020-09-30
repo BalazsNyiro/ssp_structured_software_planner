@@ -9,7 +9,7 @@ LineSep = "\n"
 
 class Step:
 
-    def __init__(self, Txt):
+    def __init__(self, Txt, ProcForPossibleQuestions):
         self.Txt = Txt
         self.Call = "--Call--"  in Txt
         self.Return = "--Return--" in Txt
@@ -30,26 +30,23 @@ class Step:
                     self.FileName = self.FileName[2:] # "> " removed from line head
 
         self.Args = dict()
+        if self.Call: # Get arguments
+            proc_input(ProcForPossibleQuestions, b"args") #list arguments
+            ProcReplyArgs = proc_output(ProcForPossibleQuestions)
+            # print("ProcReplyArgs ", ProcReplyArgs )
+            if ProcReplyArgs.strip(): # if call has any arguments
+                for Line in ProcReplyArgs.split(LineSep):
+                    if "=" in Line:
+                        Key, Val = Line.split("=")
+                        Key = Key.strip()
+                        Val = eval(Val)
+                        self.Args[Key] = Val
 
 def proc_step(Proc):
     proc_input(Proc, b"step")
     ProcReply = proc_output(Proc)
-    StepNow = Step(ProcReply)
-    print(StepNow.Txt)
-
-    if StepNow.Call: # Get arguments
-        proc_input(Proc, b"args") #list arguments
-        ProcReplyArgs = proc_output(Proc)
-        print("ProcReplyArgs ", ProcReplyArgs )
-        if ProcReplyArgs.strip(): # if call has any arguments
-            for Line in ProcReplyArgs.split(LineSep):
-                print("Line:", Line)
-                if "=" in Line:
-                    Key, Val = Line.split("=")
-                    Key = Key.strip()
-                    Val = eval(Val)
-                    StepNow.Args[Key] = Val
-
+    StepNow = Step(ProcReply, Proc)
+    # print(StepNow.Txt)
     return StepNow
 
 def setNonBlocking(fd):
