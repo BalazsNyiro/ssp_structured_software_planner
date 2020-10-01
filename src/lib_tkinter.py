@@ -94,14 +94,33 @@ def root_new(Prg, Title,Width=600, Height=400, CanvasWidth=800, CanvasHeight=600
 def namespace_draw(CanvasWidget, NameSpace,  NameSpaceCounter):
     ShiftX = NameSpaceCounter * 160
     ShiftY = NameSpaceCounter * 160
-    Width = 130
-    Height = 220
-    Font = "Times 10 italic bold"
+    Width = 160
+    Height = 40 # title
+    #FontTitle = "Times 10 italic bold"
+    FontTitle = "Times 10 bold"
+    FontSrcLine = "Courier 10 "
 
     X = ShiftX + 0
     Y = ShiftY + 0
-    Box = CanvasWidget.create_rectangle(X, Y, X+Width, Y+Height, fill="khaki1")
-    TxtTitle = CanvasWidget.create_text(X+Width/2, Y+20,fill="darkblue",font=Font,
-                        text=NameSpace.Name)
-    NameSpace.GuiElems.extend([Box, TxtTitle])
+    BoxPadding = 5
 
+    Box = CanvasWidget.create_rectangle(X, Y, X+Width, Y+Height, fill="khaki1")
+
+    LineHeight = 20
+    Ytext = Y + LineHeight
+    TxtTitle = CanvasWidget.create_text(X+Width/2, Ytext,fill="darkblue",font=FontTitle,
+                                        text=NameSpace.Name)
+
+
+    SrcTextElems = []
+    for Line in NameSpace.SourceCodeLines:
+        Height += 30
+        Ytext = Ytext + LineHeight
+        TxtSrc = CanvasWidget.create_text(X+BoxPadding, Ytext,fill="black",font=FontSrcLine,
+                                        text=Line, anchor=tkinter.NW)
+        SrcTextElems.append(TxtSrc)
+
+    CanvasWidget.coords(Box, X, Y, X+Width, Ytext+30)
+
+    NameSpace.GuiElems.extend([Box, TxtTitle])
+    NameSpace.GuiElems.extend(SrcTextElems)
