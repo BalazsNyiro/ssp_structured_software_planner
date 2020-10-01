@@ -10,12 +10,24 @@ import lib_tkinter
 # Root, CanvasWidget = lib_tkinter.win_root()
 # Root.mainloop()
 
-import debugger
+import debugger, plan
 Proc = debugger.prg_start(os.path.join(DirPrgParent, "try", "calc.py"))
 
 debugger.proc_output(Proc)
+NameSpace = plan.NameSpace("RootNameSpace", Type="Root")
+NameSpaceRoot = NameSpace
 while True:
     ProcReply = debugger.proc_step_next(Proc)
+    if ProcReply.Call:
+        Parent = NameSpace
+        NameSpace = plan.NameSpace(ProcReply.FileName + "/" + ProcReply.FunName, Type="Fun", Parent = Parent)
+        NameSpace.Args = ProcReply.Args
+        Parent.execCall(NameSpace)
+    elif ProcReply.Return and NameSpace.Parent:
+        NameSpace.ReturnValue = ProcReply.ReturnValue
+        NameSpace = NameSpace.Parent
+    else:
+        NameSpace.exec(ProcReply)
     print(">>  ", ProcReply.FunName)
     print("  ->", ProcReply.Args)
     print("  <-", ProcReply.ReturnValue)
@@ -24,7 +36,7 @@ while True:
     if ProcReply.End:
         break
 
-
+NameSpaceRoot.exec_tree()
 
 debugger.prg_end(Proc)
 sys.exit(1)
