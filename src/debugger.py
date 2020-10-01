@@ -65,7 +65,8 @@ def proc_step_next(Proc):
         proc_input(Proc, b"ll")  # list source code
         ProcReplyLL = proc_output(Proc)
         if ProcReplyLL.strip():  # if call has any arguments
-            StepNow.SourceCodeLines.extend(ProcReplyLL.split(LineSep))
+            # last line is always (Pdb), remove it
+            StepNow.SourceCodeLines.extend(ProcReplyLL.split(LineSep)[:-1])
     return StepNow
 
 
