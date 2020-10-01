@@ -11,34 +11,43 @@ import lib_tkinter
 # Root.mainloop()
 
 import debugger, plan
-Proc = debugger.prg_start(os.path.join(DirPrgParent, "try", "calc.py"))
+PathExample = os.path.join(DirPrgParent, "try", "riverbank.py")
+Proc = debugger.prg_start(PathExample)
 
 debugger.proc_output(Proc)
-NameSpace = plan.NameSpace("RootNameSpace", Type="Root")
+NameSpace = plan.NameSpace(Name="Main module", Type="module")
 NameSpaceRoot = NameSpace
+
+NameSpacesUsedInPrg = {}
 while True:
     ProcReply = debugger.proc_step_next(Proc)
     if ProcReply.Call:
         Parent = NameSpace
-        NameSpace = plan.NameSpace(ProcReply.FileName + "/" + ProcReply.FunName, Type="Fun", Parent = Parent)
+        NameSpace = plan.NameSpace(ProcReply.DisplayedName, Type="Fun", Parent = Parent)
         NameSpace.Args = ProcReply.Args
         Parent.execCall(NameSpace)
+        if NameSpace.Name not in NameSpacesUsedInPrg:
+            NameSpacesUsedInPrg[NameSpace.Name] = NameSpace
+        NameSpacesUsedInPrg[NameSpace.Name].CallCounter += 1
+
     elif ProcReply.Return and NameSpace.Parent:
         NameSpace.ReturnValue = ProcReply.ReturnValue
         NameSpace = NameSpace.Parent
     else:
         NameSpace.exec(ProcReply)
-    print(">>  ", ProcReply.FunName)
-    print("  ->", ProcReply.Args)
-    print("  <-", ProcReply.ReturnValue)
+    # print(">>  ", ProcReply.FunName)
+    # print("  ->", ProcReply.Args)
+    # print("  <-", ProcReply.ReturnValue)
     # print(" txt", ProcReply.Txt)
-    print("\n\n")
+    # print("\n\n")
     if ProcReply.End:
         break
 
-NameSpaceRoot.exec_tree()
-
 debugger.prg_end(Proc)
+
+NameSpaceRoot.exec_tree()
+plan.namespace_elems_info_cli(NameSpacesUsedInPrg )
+
 sys.exit(1)
 
 CanvasWidget = None

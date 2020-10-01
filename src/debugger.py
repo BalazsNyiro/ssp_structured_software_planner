@@ -17,7 +17,12 @@ class StepNext:
 
         self.ReturnValue = None
         if self.Return:
-            self.ReturnValue = eval(Txt.split(LineSep)[1].split("->")[1])
+            # empty line can be before --Return--,
+            # I can't be sure the exact num of line of return object
+            for LineReturn in Txt.split(LineSep):
+                if "->" in LineReturn:
+                    break
+            self.ReturnValue = eval(LineReturn.split("->")[1])
 
         self.FileName = ""
         self.LineNum = ""
@@ -29,6 +34,11 @@ class StepNext:
                     self.FileName, self.LineNum = FileAndLineNum.split("(")
                     self.FileName = self.FileName[2:] # "> " removed from line head
 
+                    # at return statements the ret value is after the fun name
+                    # > ./try/riverbank.py(21)change()->0.6000000000000001
+                    self.FunName = self.FunName.split("->")[0]
+
+        self.DisplayedName = f"{self.FileName.split('/')[-1]} {self.FunName}"
         self.Args = dict()
 
 def proc_step_next(Proc):
