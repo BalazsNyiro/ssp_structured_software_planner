@@ -14,9 +14,11 @@ class NameSpace:
         self.ExecsCallsOnly = []
         self.Type = Type
         self.CallCounter = 0
+        self.SourceCodeLines = []
 
         self.ReturnValue = None
         self.Args = dict()
+        self.GuiElems = []
 
     def exec(self, ProcReply):
         self.ExecsAll.append(ProcReply)

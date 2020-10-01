@@ -3,6 +3,7 @@ import tkinter
 PrgLib = None
 def cmd_empty():
     pass
+
 def key(event):
     print("pressed", repr(event.char))
 
@@ -40,10 +41,11 @@ def scrollbar_vertical_set_and_save(First, Last):
 
 def canvas_new(Parent, CanvasWidth, CanvasHeight):
     CanvasWidget = tkinter.Canvas(Parent, width=CanvasWidth, height=CanvasHeight)
-    CanvasWidget.bind("<Key>", key)
+    CanvasWidget.focus_set() # set keyboard focus
     CanvasWidget.bind("<ButtonPress-1>", mouse_button_press)
     CanvasWidget.bind("<ButtonRelease-1>", mouse_button_release)
     CanvasWidget.bind("<B1-Motion>", mouse_button_pressed_and_moved)
+    CanvasWidget.bind("<Key>", key)
     return CanvasWidget
 
 def root_new(Prg, Title,Width=600, Height=400, CanvasWidth=800, CanvasHeight=600):
@@ -88,3 +90,18 @@ def root_new(Prg, Title,Width=600, Height=400, CanvasWidth=800, CanvasHeight=600
     Prg["Gui"]["ZoomY"] = 1.0
 
     return Root, CanvasWidget
+
+def namespace_draw(CanvasWidget, NameSpace,  NameSpaceCounter):
+    ShiftX = NameSpaceCounter * 160
+    ShiftY = NameSpaceCounter * 160
+    Width = 130
+    Height = 220
+    Font = "Times 10 italic bold"
+
+    X = ShiftX + 0
+    Y = ShiftY + 0
+    Box = CanvasWidget.create_rectangle(X, Y, X+Width, Y+Height, fill="khaki1")
+    TxtTitle = CanvasWidget.create_text(X+Width/2, Y+20,fill="darkblue",font=Font,
+                        text=NameSpace.Name)
+    NameSpace.GuiElems.extend([Box, TxtTitle])
+

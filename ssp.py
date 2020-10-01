@@ -29,6 +29,7 @@ while True:
         if NameSpace.Name not in NameSpacesUsedInPrg:
             NameSpacesUsedInPrg[NameSpace.Name] = NameSpace
         NameSpacesUsedInPrg[NameSpace.Name].CallCounter += 1
+        NameSpacesUsedInPrg[NameSpace.Name].SourceCodeLines = ProcReply.SourceCodeLines
 
     elif ProcReply.Return and NameSpace.Parent:
         NameSpace.ReturnValue = ProcReply.ReturnValue
@@ -46,9 +47,9 @@ while True:
 debugger.prg_end(Proc)
 
 NameSpaceRoot.exec_tree()
-plan.namespace_elems_info_cli(NameSpacesUsedInPrg )
+plan.namespace_elems_info_cli(NameSpacesUsedInPrg)
 
-sys.exit(1)
+# sys.exit(1)
 
 CanvasWidget = None
 
@@ -60,6 +61,10 @@ def win_main(Prg, CanvasWidth=800, CanvasHeight=600):
 
     ObjSelected = CanvasWidget.create_rectangle(0, 0, 50, 50, fill="blue")
     ObjSelected = CanvasWidget.create_rectangle(CanvasWidth-50, CanvasHeight-50, CanvasWidth, CanvasHeight, fill="blue")
+
+    for i, NameSpaceName in enumerate(NameSpacesUsedInPrg):
+        NameSpace = NameSpacesUsedInPrg[NameSpaceName]
+        lib_tkinter.namespace_draw(CanvasWidget, NameSpace, i)
 
     # it has to be AFTER DRAWING, on the contrary scrollbar won't detect ratio
     CanvasWidget.configure(scrollregion=CanvasWidget.bbox("all"))

@@ -10,8 +10,9 @@ LineSep = "\n"
 class StepNext:
 
     def __init__(self, Txt):
-        self.Txt = Txt
+        self.Txt = Txt # the current step's source code
         self.Call = "--Call--" in Txt
+        self.SourceCodeLines = []
         self.Return = "--Return--" in Txt
         self.End = "<<PrgEnd>>" in Txt
 
@@ -49,7 +50,7 @@ def proc_step_next(Proc):
 
     # we have to process prev ProcReply,
     # then we can call next debugger statement and process it's reply
-    if StepNow.Call:  # Get arguments
+    if StepNow.Call:  # Get arguments, we entered into a call
         proc_input(Proc, b"args")  # list arguments
         ProcReplyArgs = proc_output(Proc)
         if ProcReplyArgs.strip():  # if call has any arguments
@@ -60,6 +61,11 @@ def proc_step_next(Proc):
                     Val = eval(Val)
                     StepNow.Args[Key] = Val
             # print("ARGS:", StepNow.Args)
+
+        proc_input(Proc, b"ll")  # list source code
+        ProcReplyLL = proc_output(Proc)
+        if ProcReplyLL.strip():  # if call has any arguments
+            StepNow.SourceCodeLines.extend(ProcReplyLL.split(LineSep))
     return StepNow
 
 
