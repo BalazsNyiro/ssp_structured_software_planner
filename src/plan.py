@@ -10,8 +10,8 @@ class NameSpace:
             NameSpace.NameMaxLen = len(Name)
 
         self.Parent = Parent
-        self.ExecsAll = []
-        self.ExecsCallsOnly = []
+        self.ExecsAllProcReply = []
+        self.ExecsCallsOnlyNameSpaces = []
         self.Type = Type
         self.CallCounter = 0
         self.SourceCodeLines = []
@@ -21,11 +21,10 @@ class NameSpace:
         self.GuiElems = []
 
     def exec(self, ProcReply):
-        self.ExecsAll.append(ProcReply)
+        self.ExecsAllProcReply.append(ProcReply)
 
-    def execCall(self, FunChild):
-        self.ExecsCallsOnly.append(FunChild)
-
+    def execCall(self, NameSpaceFunChild):
+        self.ExecsCallsOnlyNameSpaces.append(NameSpaceFunChild)
 
     def exec_level(self):
         Level = 1
@@ -39,11 +38,11 @@ class NameSpace:
         print(f"{Prefix}-> {self.Name}")
         print(f"{Prefix}   arg: {self.Args}")
 
-        if self.ExecsCallsOnly:
+        if self.ExecsCallsOnlyNameSpaces:
             print()
-        for ExecCall in self.ExecsCallsOnly:
-            ExecCall.exec_tree()
-        if self.ExecsCallsOnly:
+        for NameSpaceCall in self.ExecsCallsOnlyNameSpaces:
+            NameSpaceCall.exec_tree()
+        if self.ExecsCallsOnlyNameSpaces:
             print()
 
         print(f"{Prefix}   ret: {self.ReturnValue}")

@@ -34,8 +34,10 @@ while True:
     elif ProcReply.Return and NameSpace.Parent:
         NameSpace.ReturnValue = ProcReply.ReturnValue
         NameSpace = NameSpace.Parent
-    else:
-        NameSpace.exec(ProcReply)
+
+    # save every executed reply here
+    NameSpace.exec(ProcReply)
+
     # print(">>  ", ProcReply.FunName)
     # print("  ->", ProcReply.Args)
     # print("  <-", ProcReply.ReturnValue)

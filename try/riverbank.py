@@ -2,9 +2,10 @@
 # -*- coding: utf-8 -*-
 
 
-AccBob = {"owner": "Bob", "Balance": 124, "Currency": "EUR"}
-AccJim = {"owner": "Jim", "Balance": 163, "Currency": "USD"}
-AccLtd = {"owner": "Ltd", "Balance": 12345678, "Currency": "GBP"}
+AccBob        = {"owner": "Bob", "Balance": 124, "Currency": "EUR"}
+AccJim        = {"owner": "Jim", "Balance": 163, "Currency": "USD"}
+AccLtd        = {"owner": "Ltd", "Balance": 12345678, "Currency": "GBP"}
+AccRestaurant = {"owner": "Restaurant", "Balance": 12345678, "Currency": "GBP"}
 
 Rates = {("EUR", "GBP") : 0.6,
          ("EUR", "USD") : 1.2,
@@ -41,9 +42,12 @@ def transfer(From, To, Amount, CurrencyOfTransaction):
 
 
 def main():
-    # Salary Bob:
+    # Salary from Ltd to Bob and Jim:
     transfer(AccLtd, AccBob, 26.5, "USD")
     transfer(AccLtd, AccJim, 23.2, "EUR")
+
+    # dinner party, Jim pay Bob+Jim costs
+    transfer(AccJim, AccRestaurant, 1, "EUR")
 
     # dinner party, Bob pay his bill to Jim
     transfer(AccBob, AccJim, 0.4, "GBP")

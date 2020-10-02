@@ -94,8 +94,6 @@ def root_new(Prg, Title,Width=600, Height=400, CanvasWidth=800, CanvasHeight=600
 def namespace_draw(CanvasWidget, NameSpace,  NameSpaceCounter):
     ShiftX = NameSpaceCounter * 160
     ShiftY = NameSpaceCounter * 160
-    Width = 160
-    Height = 40 # title
 
     #FontTitle = "Times 10 italic bold"
     FontTitle = "Times 10 bold"
@@ -103,31 +101,32 @@ def namespace_draw(CanvasWidget, NameSpace,  NameSpaceCounter):
 
     X = ShiftX + 0
     Y = ShiftY + 0
-    BoxPadding = 5
-    LinePadding = 3
+    BoxPadding = 10
+    LineSpace = 3
     Ytext = Y + BoxPadding
 
-    Box = CanvasWidget.create_rectangle(X, Y, X+Width, Y+Height, fill="khaki1")
-    TxtTitle = CanvasWidget.create_text(X+Width/2, Ytext,
+    # box with default with/height, later we resize it
+    Box = CanvasWidget.create_rectangle(X, Y, X+40, Y+40, fill="khaki1")
+    TxtTitle = CanvasWidget.create_text(X+BoxPadding, Ytext,
                                         fill="darkblue",font=FontTitle,
-                                        text=NameSpace.Name, anchor = tkinter.N)
+                                        text=NameSpace.Name, anchor = tkinter.NW)
     Bounds = CanvasWidget.bbox(TxtTitle)  # returns a tuple like (x1, y1, x2, y2)
     TitleHeight = Bounds[3] - Bounds[1]
-    Ytext += TitleHeight + LinePadding
+    Ytext += TitleHeight + LineSpace
 
     TxtSrcWidthMax = 0
     SrcTextElems = []
     for Line in NameSpace.SourceCodeLines:
-        Height += 30
         TxtSrc = CanvasWidget.create_text(X+BoxPadding, Ytext,fill="black",font=FontSrcLine,
                                         text=Line, anchor=tkinter.NW)
         SrcTextElems.append(TxtSrc)
 
         Bounds = CanvasWidget.bbox(TxtSrc)  # returns a tuple like (x1, y1, x2, y2)
+        # xl, yl, xr, yr = Bounds
         TxtSrcWidth = Bounds[2] - Bounds[0]
         TxtSrcHeight = Bounds[3] - Bounds[1]
 
-        Ytext += TxtSrcHeight + LinePadding
+        Ytext += TxtSrcHeight + LineSpace
         if TxtSrcWidth > TxtSrcWidthMax: TxtSrcWidthMax= TxtSrcWidth
 
     CanvasWidget.coords(Box, X, Y, X+BoxPadding+TxtSrcWidthMax+BoxPadding, Ytext+BoxPadding)
