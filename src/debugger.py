@@ -4,15 +4,62 @@
 
 import subprocess
 import os, fcntl
+import util
 
 LineSep = "\n"
+
+def find_line_with_sign(Txt, Sign, Separator="", WantedIndex=0, FirstOrLastResult="last"):
+    Ret = ""
+    for Line in Txt.split(LineSep):
+        if Sign == Line[0:len(Sign)]: # find sign at the beginning of the line
+            if Separator:
+                Elems = Line.split(Separator)
+                Ret = Elems[WantedIndex]
+            else:
+                Ret = Line
+            if FirstOrLastResult == "first":
+                break
+                # else later we can catch another line
+    return Ret
+
+
+
+Files = {}
+
+def get_line_from_file(DebuggerLine):
+    """
+     
+    :param DebuggerLine: '> ./ssp_structured_software_planner/try/riverbank.py(55)main()'
+    :return: 
+    """
+    print("DebuggerLine:", DebuggerLine)
+    PathLineNumFun = DebuggerLine[2:]
+    Path, LineNum = PathLineNumFun.split(")", 1)[0].split("(")
+    print(f"Path: {Path}  Linenum:{LineNum}")
+    return util.file_read(Path)[int(LineNum)-1] # 0 based linenum vs human 1 based in debugger
 
 class StepNext:
 
     def __init__(self, Txt):
         self.Txt = Txt # the current step's source code
         self.Call = "--Call--" in Txt
-        self.SourceCodeLines = []
+
+        # the program can print his own output into the debugger's output
+        # so sometime I need to catch the last result
+
+        #   0.4 GBP -> 0.60 USD
+        # > ./ssp_structured_software_planner/try/riverbank.py(22)change()
+        # -> return AmountTo
+        # (Pdb)
+        print("\nAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n")
+        print(Txt)
+        print("\n......................\n")
+        self.SourceCodeLineInFile = get_line_from_file(find_line_with_sign(Txt, "> ")).rstrip()
+        self.SourceCodeLineInDebugger = find_line_with_sign(Txt, "-> ", "-> ", 1)
+        print(self.SourceCodeLineInDebugger)
+        print("\nBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB\n\n\n")
+
+        self.SourceCodeLinesOfCurrentNameSpace = []
         self.Return = "--Return--" in Txt
         self.End = "<<PrgEnd>>" in Txt
 
@@ -20,10 +67,13 @@ class StepNext:
         if self.Return:
             # empty line can be before --Return--,
             # I can't be sure the exact num of line of return object
-            for LineReturn in Txt.split(LineSep):
-                if "->" in LineReturn:
-                    break
-            self.ReturnValue = eval(LineReturn.split("->")[1])
+
+            # EXAMPLE RETURN STRING:
+            # --Return--
+            # > ./ssp_structured_software_planner/try/riverbank.py(22)change()->18.549999999999997
+            # -> return AmountTo
+            # (Pdb)
+            self.ReturnValue = eval( find_line_with_sign(Txt, "> ", "->", 1)   ) # return with FIRST -> line!
 
         self.FileName = ""
         self.LineNum = ""
@@ -66,7 +116,7 @@ def proc_step_next(Proc):
         ProcReplyLL = proc_output(Proc)
         if ProcReplyLL.strip():  # if call has any arguments
             # last line is always (Pdb), remove it
-            StepNow.SourceCodeLines.extend(ProcReplyLL.split(LineSep)[:-1])
+            StepNow.SourceCodeLinesOfCurrentNameSpace.extend(ProcReplyLL.split(LineSep)[:-1])
     return StepNow
 
 

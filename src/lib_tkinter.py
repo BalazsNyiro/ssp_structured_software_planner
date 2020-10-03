@@ -48,7 +48,7 @@ def canvas_new(Parent, CanvasWidth, CanvasHeight):
     CanvasWidget.bind("<Key>", key)
     return CanvasWidget
 
-def root_new(Prg, Title,Width=600, Height=400, CanvasWidth=800, CanvasHeight=600):
+def root_new(Prg, Title,Width=1200, Height=800, CanvasWidth=800, CanvasHeight=600):
     global PrgLib
     PrgLib = Prg
 
@@ -116,9 +116,10 @@ def namespace_draw(CanvasWidget, NameSpace,  NameSpaceCounter):
 
     TxtSrcWidthMax = 0
     SrcTextElems = []
-    for Line in NameSpace.SourceCodeLines:
-        TxtSrc = CanvasWidget.create_text(X+BoxPadding, Ytext,fill="black",font=FontSrcLine,
-                                        text=Line, anchor=tkinter.NW)
+    for ProcReply in NameSpace.ExecsAllProcReply:
+        print(ProcReply.Txt)
+        TxtSrc = CanvasWidget.create_text(X + BoxPadding, Ytext, fill="black", font=FontSrcLine,
+                                          text=ProcReply.SourceCodeLineInFile, anchor=tkinter.NW)
         SrcTextElems.append(TxtSrc)
 
         Bounds = CanvasWidget.bbox(TxtSrc)  # returns a tuple like (x1, y1, x2, y2)

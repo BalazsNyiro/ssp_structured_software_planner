@@ -29,14 +29,14 @@ while True:
         if NameSpace.Name not in NameSpacesUsedInPrg:
             NameSpacesUsedInPrg[NameSpace.Name] = NameSpace
         NameSpacesUsedInPrg[NameSpace.Name].CallCounter += 1
-        NameSpacesUsedInPrg[NameSpace.Name].SourceCodeLines = ProcReply.SourceCodeLines
-
-    elif ProcReply.Return and NameSpace.Parent:
-        NameSpace.ReturnValue = ProcReply.ReturnValue
-        NameSpace = NameSpace.Parent
+        NameSpacesUsedInPrg[NameSpace.Name].SourceCodeLinesOfCurrentNameSpace = ProcReply.SourceCodeLinesOfCurrentNameSpace
 
     # save every executed reply here
     NameSpace.exec(ProcReply)
+
+    if ProcReply.Return and NameSpace.Parent:
+        NameSpace.ReturnValue = ProcReply.ReturnValue
+        NameSpace = NameSpace.Parent
 
     # print(">>  ", ProcReply.FunName)
     # print("  ->", ProcReply.Args)
