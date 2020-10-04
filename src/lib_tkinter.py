@@ -14,21 +14,27 @@ def key(event):
             Player["ProcStepId"] += 1
             print("Player id", Player["ProcStepId"])
 
-            ProcStep = Player["ProcSteps"][Player["ProcStepId"]]
+    if event.char == "k":
+        if Player["ProcStepId"]-1 > 0:
+            Player["ProcStepId"] -= 1
+            print("Player id", Player["ProcStepId"])
 
-            # how can I set bold text directly?
-            TextObjInGui = Player["ProcStepsInGui"][ProcStep]
-            Bounds = Player["CanvasWidget"].bbox(TextObjInGui)
-            Xl, Yl, Xr, Yr = Bounds
+    if event.char in "jk":
+        ProcStep = Player["ProcSteps"][Player["ProcStepId"]]
 
-            PointerXl = Xl-20
-            PointerYl = Yl
-            PointerXr = PointerXl + 10
-            PointerYr = PointerYl + 10
-            if not Player["ProcStepPointer"]:
-                Player["ProcStepPointer"] = Player["CanvasWidget"].create_rectangle(PointerXl, PointerYl, PointerXr, PointerYr, fill="green")
-            # set position
-            Player["CanvasWidget"].coords(Player["ProcStepPointer"], PointerXl, PointerYl, PointerXr, PointerYr)
+        # how can I set bold text directly?
+        TextObjInGui = Player["ProcStepsInGui"][ProcStep]
+        Bounds = Player["CanvasWidget"].bbox(TextObjInGui)
+        Xl, Yl, Xr, Yr = Bounds
+
+        PointerXl = Xl-20
+        PointerYl = Yl
+        PointerXr = PointerXl + 10
+        PointerYr = PointerYl + 10
+        if not Player["ProcStepPointer"]:
+            Player["ProcStepPointer"] = Player["CanvasWidget"].create_rectangle(PointerXl, PointerYl, PointerXr, PointerYr, fill="green")
+        # set position
+        Player["CanvasWidget"].coords(Player["ProcStepPointer"], PointerXl, PointerYl, PointerXr, PointerYr)
 
 
 def coord_virtual_x(EventX):
