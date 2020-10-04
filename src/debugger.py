@@ -42,6 +42,9 @@ def get_line_from_file(DebuggerLine, Return):
 
 class StepNext:
 
+    def gui_id(self):
+        return f"{self.FileName}{self.LineNum}"
+
     def __init__(self, Txt):
         self.Txt = Txt # the current step's source code
         self.Call = "--Call--" in Txt

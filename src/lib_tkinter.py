@@ -23,7 +23,7 @@ def key(event):
         ProcStep = Player["ProcSteps"][Player["ProcStepId"]]
 
         # how can I set bold text directly?
-        TextObjInGui = Player["ProcStepsInGui"][ProcStep]
+        TextObjInGui = Player["ProcStepsInGui"][ProcStep.gui_id()]
         Bounds = Player["CanvasWidget"].bbox(TextObjInGui)
         Xl, Yl, Xr, Yr = Bounds
 
@@ -153,7 +153,7 @@ def namespace_draw(CanvasWidget, NameSpace,  NameSpaceCounter):
         TxtSrcGui = CanvasWidget.create_text(X + BoxPadding, Ytext, fill="black", font=FontSrcLine,
                                           text=ProcStep.SourceCodeLineInFile, anchor=tkinter.NW)
         SrcTextElems.append(TxtSrcGui)
-        PrgLib["Player"]["ProcStepsInGui"][ProcStep] = TxtSrcGui
+        PrgLib["Player"]["ProcStepsInGui"][ProcStep.gui_id()] = TxtSrcGui
 
         Bounds = CanvasWidget.bbox(TxtSrcGui)  # returns a tuple like (x1, y1, x2, y2)
         # xl, yl, xr, yr = Bounds
