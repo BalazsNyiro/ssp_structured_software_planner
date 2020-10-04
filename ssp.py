@@ -4,7 +4,15 @@
 import os, sys
 DirPrgParent = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(DirPrgParent, "src"))
-Prg = {"DirPrgParent":  DirPrgParent, "Gui": dict()}
+Prg = {"DirPrgParent":  DirPrgParent, "Gui": dict(),
+       "Player": {
+           "ProcStepId": -1,
+           "ProcSteps": [],
+           "ProcStepsInGui": {}, # stepid - gui obj dict
+           "CanvasWidget": None,
+           "ProcStepPointer": None
+       }
+      }
 
 import lib_tkinter
 # Root, CanvasWidget = lib_tkinter.win_root()
@@ -17,25 +25,27 @@ Proc = debugger.prg_start(PathExample)
 debugger.proc_output(Proc)
 NameSpace = plan.NameSpace(Name="Main module", Type="module")
 NameSpaceRoot = NameSpace
-
 NameSpacesUsedInPrg = {}
+
 while True:
-    ProcReply = debugger.proc_step_next(Proc)
-    if ProcReply.Call:
+    ProcStep = debugger.proc_step_next(Proc)
+    Prg["Player"]["ProcSteps"].append(ProcStep) # collect all reply from debugger
+
+    if ProcStep.Call:
         Parent = NameSpace
-        NameSpace = plan.NameSpace(ProcReply.DisplayedName, Type="Fun", Parent = Parent)
-        NameSpace.Args = ProcReply.Args
+        NameSpace = plan.NameSpace(ProcStep.DisplayedName, Type="Fun", Parent = Parent)
+        NameSpace.Args = ProcStep.Args
         Parent.execCall(NameSpace)
         if NameSpace.Name not in NameSpacesUsedInPrg:
             NameSpacesUsedInPrg[NameSpace.Name] = NameSpace
         NameSpacesUsedInPrg[NameSpace.Name].CallCounter += 1
-        NameSpacesUsedInPrg[NameSpace.Name].SourceCodeLinesOfCurrentNameSpace = ProcReply.SourceCodeLinesOfCurrentNameSpace
+        NameSpacesUsedInPrg[NameSpace.Name].SourceCodeLinesOfCurrentNameSpace = ProcStep.SourceCodeLinesOfCurrentNameSpace
 
     # save every executed reply here
-    NameSpace.exec(ProcReply)
+    NameSpace.exec(ProcStep)
 
-    if ProcReply.Return and NameSpace.Parent:
-        NameSpace.ReturnValue = ProcReply.ReturnValue
+    if ProcStep.Return and NameSpace.Parent:
+        NameSpace.ReturnValue = ProcStep.ReturnValue
         NameSpace = NameSpace.Parent
 
     # print(">>  ", ProcReply.FunName)
@@ -43,7 +53,7 @@ while True:
     # print("  <-", ProcReply.ReturnValue)
     # print(" txt", ProcReply.Txt)
     # print("\n\n")
-    if ProcReply.End:
+    if ProcStep.End:
         break
 
 debugger.prg_end(Proc)

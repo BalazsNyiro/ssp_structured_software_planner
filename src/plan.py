@@ -20,8 +20,8 @@ class NameSpace:
         self.Args = dict()
         self.GuiElems = []
 
-    def exec(self, ProcReply):
-        self.ExecsAllProcReply.append(ProcReply)
+    def exec(self, ProcStep):
+        self.ExecsAllProcReply.append(ProcStep)
 
     def execCall(self, NameSpaceFunChild):
         self.ExecsCallsOnlyNameSpaces.append(NameSpaceFunChild)
@@ -32,6 +32,7 @@ class NameSpace:
             Level += self.Parent.exec_level()
         return Level
 
+    # show input/output/inner calls
     def exec_tree(self):
         Prefix = " " * self.exec_level()
         print()

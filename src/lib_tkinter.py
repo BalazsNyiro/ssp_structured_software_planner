@@ -5,7 +5,31 @@ def cmd_empty():
     pass
 
 def key(event):
-    print("pressed", repr(event.char))
+    global PrgLib
+    print("pressed", event.char)
+    Player = PrgLib["Player"]
+
+    if event.char == "j":
+        if Player["ProcStepId"]+1 < len(Player["ProcSteps"]):
+            Player["ProcStepId"] += 1
+            print("Player id", Player["ProcStepId"])
+
+            ProcStep = Player["ProcSteps"][Player["ProcStepId"]]
+
+            # how can I set bold text directly?
+            TextObjInGui = Player["ProcStepsInGui"][ProcStep]
+            Bounds = Player["CanvasWidget"].bbox(TextObjInGui)
+            Xl, Yl, Xr, Yr = Bounds
+
+            PointerXl = Xl-20
+            PointerYl = Yl
+            PointerXr = PointerXl + 10
+            PointerYr = PointerYl + 10
+            if not Player["ProcStepPointer"]:
+                Player["ProcStepPointer"] = Player["CanvasWidget"].create_rectangle(PointerXl, PointerYl, PointerXr, PointerYr, fill="green")
+            # set position
+            Player["CanvasWidget"].coords(Player["ProcStepPointer"], PointerXl, PointerYl, PointerXr, PointerYr)
+
 
 def coord_virtual_x(EventX):
     Gui = PrgLib["Gui"]
@@ -69,8 +93,10 @@ def root_new(Prg, Title,Width=1200, Height=800, CanvasWidth=800, CanvasHeight=60
     Root.geometry(f"{Width}x{Height}")
     Root.config(menu=MenuBar)
 
+    # user input detection binds are in canvas_new()
     CanvasWidget = canvas_new(Root, CanvasWidth, CanvasHeight)
     CanvasWidget.grid(row=0, column=0, sticky="news")
+    PrgLib["Player"]["CanvasWidget"] = CanvasWidget
 
     # cell resizabe, flexible:
     ScrollVertical = tkinter.Scrollbar(Root, command=CanvasWidget.yview, orient="vertical")
@@ -116,13 +142,14 @@ def namespace_draw(CanvasWidget, NameSpace,  NameSpaceCounter):
 
     TxtSrcWidthMax = 0
     SrcTextElems = []
-    for ProcReply in NameSpace.ExecsAllProcReply:
-        # print(ProcReply.Txt)
-        TxtSrc = CanvasWidget.create_text(X + BoxPadding, Ytext, fill="black", font=FontSrcLine,
-                                          text=ProcReply.SourceCodeLineInFile, anchor=tkinter.NW)
-        SrcTextElems.append(TxtSrc)
+    for ProcStep in NameSpace.ExecsAllProcReply:
+        # print(ProcStep.Txt)
+        TxtSrcGui = CanvasWidget.create_text(X + BoxPadding, Ytext, fill="black", font=FontSrcLine,
+                                          text=ProcStep.SourceCodeLineInFile, anchor=tkinter.NW)
+        SrcTextElems.append(TxtSrcGui)
+        PrgLib["Player"]["ProcStepsInGui"][ProcStep] = TxtSrcGui
 
-        Bounds = CanvasWidget.bbox(TxtSrc)  # returns a tuple like (x1, y1, x2, y2)
+        Bounds = CanvasWidget.bbox(TxtSrcGui)  # returns a tuple like (x1, y1, x2, y2)
         # xl, yl, xr, yr = Bounds
         TxtSrcWidth = Bounds[2] - Bounds[0]
         TxtSrcHeight = Bounds[3] - Bounds[1]
