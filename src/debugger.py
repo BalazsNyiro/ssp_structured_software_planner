@@ -26,7 +26,7 @@ def find_line_with_sign(Txt, Sign, Separator="", WantedIndex=0, FirstOrLastResul
 
 Files = {}
 
-def get_line_from_file(DebuggerLine):
+def get_line_from_file(DebuggerLine, Return):
     """
      
     :param DebuggerLine: '> ./ssp_structured_software_planner/try/riverbank.py(55)main()'
@@ -36,7 +36,9 @@ def get_line_from_file(DebuggerLine):
     PathLineNumFun = DebuggerLine[2:]
     Path, LineNum = PathLineNumFun.split(")", 1)[0].split("(")
     print(f"Path: {Path}  Linenum:{LineNum}")
-    return util.file_read(Path)[int(LineNum)-1] # 0 based linenum vs human 1 based in debugger
+
+    ReturnPrefix = "ret" if Return else "   "
+    return f"{LineNum:2} {ReturnPrefix}" + util.file_read(Path)[int(LineNum)-1] # 0 based linenum vs human 1 based in debugger
 
 class StepNext:
 
@@ -44,26 +46,11 @@ class StepNext:
         self.Txt = Txt # the current step's source code
         self.Call = "--Call--" in Txt
 
-        # the program can print his own output into the debugger's output
-        # so sometime I need to catch the last result
 
-        #   0.4 GBP -> 0.60 USD
-        # > ./ssp_structured_software_planner/try/riverbank.py(22)change()
-        # -> return AmountTo
-        # (Pdb)
-        print("\nAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n")
-        print(Txt)
-        print("\n......................\n")
-        self.SourceCodeLineInFile = get_line_from_file(find_line_with_sign(Txt, "> ")).rstrip()
-        self.SourceCodeLineInDebugger = find_line_with_sign(Txt, "-> ", "-> ", 1)
-        print(self.SourceCodeLineInDebugger)
-        print("\nBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB\n\n\n")
 
-        self.SourceCodeLinesOfCurrentNameSpace = []
         self.Return = "--Return--" in Txt
-        self.End = "<<PrgEnd>>" in Txt
-
         self.ReturnValue = None
+
         if self.Return:
             # empty line can be before --Return--,
             # I can't be sure the exact num of line of return object
@@ -74,6 +61,26 @@ class StepNext:
             # -> return AmountTo
             # (Pdb)
             self.ReturnValue = eval( find_line_with_sign(Txt, "> ", "->", 1)   ) # return with FIRST -> line!
+
+
+
+        # the program can print his own output into the debugger's output
+        # so sometime I need to catch the last result
+
+        #   0.4 GBP -> 0.60 USD
+        # > ./ssp_structured_software_planner/try/riverbank.py(22)change()
+        # -> return AmountTo
+        # (Pdb)
+        print("\nAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n")
+        #print(Txt)
+        print("\n......................\n")
+        self.SourceCodeLineInFile = get_line_from_file(find_line_with_sign(Txt, "> "), self.Return).rstrip()
+        self.SourceCodeLineInDebugger = find_line_with_sign(Txt, "-> ", "-> ", 1)
+        print("SourceCodeLineInDebugger", self.SourceCodeLineInDebugger)
+        print("\nBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB\n")
+
+        self.SourceCodeLinesOfCurrentNameSpace = []
+        self.End = "<<PrgEnd>>" in Txt
 
         self.FileName = ""
         self.LineNum = ""
@@ -96,7 +103,8 @@ def proc_step_next(Proc):
     proc_input(Proc, b"step")
     ProcReply = proc_output(Proc)
     StepNow = StepNext(ProcReply)
-    # print("StepNow.Txt", StepNow.Txt)
+    print("StepNow.Txt", StepNow.Txt)
+    print("\nCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC\n\n\n")
 
     # we have to process prev ProcReply,
     # then we can call next debugger statement and process it's reply

@@ -117,7 +117,7 @@ def namespace_draw(CanvasWidget, NameSpace,  NameSpaceCounter):
     TxtSrcWidthMax = 0
     SrcTextElems = []
     for ProcReply in NameSpace.ExecsAllProcReply:
-        print(ProcReply.Txt)
+        # print(ProcReply.Txt)
         TxtSrc = CanvasWidget.create_text(X + BoxPadding, Ytext, fill="black", font=FontSrcLine,
                                           text=ProcReply.SourceCodeLineInFile, anchor=tkinter.NW)
         SrcTextElems.append(TxtSrc)
