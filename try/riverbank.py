@@ -39,9 +39,9 @@ def transfer(From, To, Amount, CurrencyOfTransaction):
     acc_info(From)
     acc_info(To)
     print()
+    return "transfer"
 
-
-def main():
+def main(PrgArgs=[]):
     # Salary from Ltd to Bob and Jim:
     transfer(AccLtd, AccBob, 26.5, "USD")
     transfer(AccLtd, AccJim, 23.2, "EUR")
@@ -52,7 +52,7 @@ def main():
     # dinner party, Bob pay his bill to Jim
     transfer(AccBob, AccJim, 0.4, "GBP")
 
-    "<<PrgEnd>>"
+    return "End"
 
-breakpoint()
-main()
+if __name__ == "__main__":
+    main()
