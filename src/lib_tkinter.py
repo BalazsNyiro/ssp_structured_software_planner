@@ -148,11 +148,13 @@ def namespace_draw(Prg, CanvasWidget, NameSpace,  NameSpaceCounter):
 
     TxtSrcWidthMax = 0
     SrcTextElems = []
-    for LineExecuted in NameSpace.LinesExecuted:
+    NameSpaceGeneral = Prg["debugger"].NameSpaceGenerals[NameSpace.Id]
+
+    for LineNum, LineObj in NameSpaceGeneral.LinesExecuted.items():
         TxtSrcGui = CanvasWidget.create_text(X + BoxPadding, Ytext, fill="black", font=FontSrcLine,
-                                             text=LineExecuted.Line, anchor=tkinter.NW)
+                                             text=LineObj.Line, anchor=tkinter.NW)
         SrcTextElems.append(TxtSrcGui)
-        Prg["debugger"].NameSpaceNames[NameSpace.Id].GuiLinesObjects[(NameSpace.FileName, LineExecuted.Line)] = TxtSrcGui
+        NameSpaceGeneral.GuiLinesObjects[(NameSpace.FileName, LineObj.Line)] = TxtSrcGui
 
         Bounds = CanvasWidget.bbox(TxtSrcGui)  # returns a tuple like (x1, y1, x2, y2)
         # xl, yl, xr, yr = Bounds
@@ -164,5 +166,5 @@ def namespace_draw(Prg, CanvasWidget, NameSpace,  NameSpaceCounter):
 
     CanvasWidget.coords(Box, X, Y, X+BoxPadding+TxtSrcWidthMax+BoxPadding, Ytext+BoxPadding)
 
-    NameSpace.GuiElems.extend([Box, TxtTitle])
-    NameSpace.GuiElems.extend(SrcTextElems)
+    NameSpaceGeneral.GuiElems.extend([Box, TxtTitle])
+    NameSpaceGeneral.GuiElems.extend(SrcTextElems)

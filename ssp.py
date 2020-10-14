@@ -37,7 +37,7 @@ def win_main(Prg, CanvasWidth=800, CanvasHeight=600):
     ObjSelected = CanvasWidget.create_rectangle(0, 0, 50, 50, fill="blue")
     ObjSelected = CanvasWidget.create_rectangle(CanvasWidth-50, CanvasHeight-50, CanvasWidth, CanvasHeight, fill="blue")
 
-    NameSpaceNames = Prg["debugger"].NameSpaceNames
+    NameSpaceNames = Prg["debugger"].NameSpaceGenerals
     for i, Key in enumerate(NameSpaceNames):
         NameSpace = NameSpaceNames[Key]
         lib_tkinter.namespace_draw(Prg, CanvasWidget, NameSpace, i)
