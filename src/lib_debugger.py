@@ -9,7 +9,6 @@ class NameSpaceGeneral():
         self.LinesSourceFile = LinesSourceFile
         self.LinesExecuted = {}
         self.LineNumDef = LineNumDef
-        self.GuiLinesObjects = {} # (File, ExecutedLine) -> object in Gui
         self.Id = (FileName, LineNumDef)
         self.GuiElems = []
 
@@ -45,11 +44,23 @@ class NameSpaceOneCall():
         return "\n".join(Out)
 
 class ExecLine():
+    FileNameLenMax = 0
+    LineLenMax = 0
+
     def __init__(self, FileName, LineNum, Line, Locals):
         self.FileName = FileName
         self.LineNum = LineNum
         self.Line = Line
         self.Locals = Locals
+
+        if Len := len(FileName) > ExecLine.FileNameLenMax:
+            ExecLine.FileNameLenMax = Len
+
+        if Len := len(Line) > ExecLine.LineLenMax:
+            ExecLine.LineLenMax = Len
+
+    def __str__(self):
+        return f"{self.LineNum} {self.Line} {self.FileName}"
 
 class Debugger(bdb.Bdb):
     Root = NameSpaceOneCall(Name="Root")

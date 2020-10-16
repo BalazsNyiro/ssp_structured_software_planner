@@ -8,22 +8,24 @@ def key(event):
     global PrgLib
     print("pressed", event.char)
     Player = PrgLib["Player"]
+    Debugger = PrgLib["debugger"]
+    ExecutionAll = Debugger.ExecutionAll
 
     if event.char == "j":
-        if Player["ProcStepId"]+1 < len(Player["ProcSteps"]):
-            Player["ProcStepId"] += 1
-            print("Player id", Player["ProcStepId"])
+        if Player["ExecNext"]+1 < len(ExecutionAll):
+            Player["ExecNext"] += 1
+            print("Player id", Player["ExecNext"])
 
     if event.char == "k":
-        if Player["ProcStepId"]-1 > 0:
-            Player["ProcStepId"] -= 1
-            print("Player id", Player["ProcStepId"])
+        if Player["ExecNext"]-1 > 0:
+            Player["ExecNext"] -= 1
+            print("Player id", Player["ExecNext"])
 
     if event.char in "jk":
-        ProcStep = Player["ProcSteps"][Player["ProcStepId"]]
+        GuiLinesObjects = PrgLib["Player"]["GuiLinesObjects"]
+        ExecLine = ExecutionAll[Player["ExecNext"]]
+        TextObjInGui = GuiLinesObjects[(ExecLine.FileName, ExecLine.Line)]
 
-        # how can I set bold text directly?
-        TextObjInGui = Player["ProcStepsInGui"][ProcStep.gui_id()]
         Bounds = Player["CanvasWidget"].bbox(TextObjInGui)
         Xl, Yl, Xr, Yr = Bounds
 
@@ -154,7 +156,10 @@ def namespace_draw(Prg, CanvasWidget, NameSpace,  NameSpaceCounter):
         TxtSrcGui = CanvasWidget.create_text(X + BoxPadding, Ytext, fill="black", font=FontSrcLine,
                                              text=LineObj.Line, anchor=tkinter.NW)
         SrcTextElems.append(TxtSrcGui)
-        NameSpaceGeneral.GuiLinesObjects[(NameSpace.FileName, LineObj.Line)] = TxtSrcGui
+
+        # one line can be executed more than once, so we store only one Gui in general,
+        # not in ExecutedAll list
+        Prg["Player"]["GuiLinesObjects"][(NameSpace.FileName, LineObj.Line)] = TxtSrcGui
 
         Bounds = CanvasWidget.bbox(TxtSrcGui)  # returns a tuple like (x1, y1, x2, y2)
         # xl, yl, xr, yr = Bounds

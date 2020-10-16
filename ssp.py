@@ -12,12 +12,13 @@ Prg = {"DirPrgParent":  DirPrgParent,
        "Gui": dict(),
        "debugger": lib_debugger.Debugger(),
        "Player": {
-           "ProcStepId": -1,
+           "ExecNext": -1,
            "ProcSteps": [],
            "ProcStepsInGui": {},  # stepid - gui obj dict
            "CanvasWidget": None,
-           "ProcStepPointer": None
-       }
+           "ProcStepPointer": None,
+           "GuiLinesObjects": {}
+}
        }
 
 import riverbank
@@ -25,6 +26,9 @@ import riverbank
 Prg["debugger"].set_break("try/riverbank.py", 1)
 Prg["debugger"].run("riverbank.main()")
 print(Prg["debugger"].Root)
+
+for ExecNext in Prg["debugger"].ExecutionAll:
+    print(ExecNext)
 
 CanvasWidget = None
 
