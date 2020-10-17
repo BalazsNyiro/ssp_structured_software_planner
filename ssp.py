@@ -30,8 +30,8 @@ print(Prg["debugger"].Root)
 for ExecNext in Prg["debugger"].ExecutionAll:
     print(ExecNext)
 
-for Id, NameSpaceDef in Prg["debugger"].NameSpaceDefinitions.items():
-    print(NameSpaceDef)
+# for Id, NameSpaceDef in Prg["debugger"].NameSpaceDefinitions.items():
+#     print(NameSpaceDef)
 
 CanvasWidget = None
 
@@ -44,10 +44,14 @@ def win_main(Prg, CanvasWidth=800, CanvasHeight=600):
     ObjSelected = CanvasWidget.create_rectangle(0, 0, 50, 50, fill="blue")
     ObjSelected = CanvasWidget.create_rectangle(CanvasWidth-50, CanvasHeight-50, CanvasWidth, CanvasHeight, fill="blue")
 
-    NameSpaceNames = Prg["debugger"].NameSpaceDefinitions
-    for i, Key in enumerate(NameSpaceNames):
-        NameSpace = NameSpaceNames[Key]
-        lib_tkinter.namespace_draw(Prg, CanvasWidget, NameSpace, i)
+    NameSpaceDefinitions = Prg["debugger"].NameSpaceDefinitions
+
+    NameSpaceCounter = 0
+    for NameSpaceId in NameSpaceDefinitions:
+        NameSpaceDef = NameSpaceDefinitions[NameSpaceId]
+        if "NoDefName" not in NameSpaceDef.Name:
+            lib_tkinter.namespace_draw(Prg, CanvasWidget, NameSpaceDef, NameSpaceCounter)
+            NameSpaceCounter += 1
 
     # it has to be AFTER DRAWING, on the contrary scrollbar won't detect ratio
     CanvasWidget.configure(scrollregion=CanvasWidget.bbox("all"))

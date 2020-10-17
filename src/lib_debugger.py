@@ -1,11 +1,11 @@
-import bdb, util, copy
+import bdb, util, sys
 
 class NameSpaceDefinition():
     DefCounter = 0
     def __init__(self, Id,
                  Name,
-                 FileName=None,
-                 LineNumDef=None,
+                 FileName="",
+                 LineNumDef=-1,
                  LinesSourceFile = None
                  ):
         NameSpaceDefinition.DefCounter += 1
@@ -33,7 +33,7 @@ class NameSpaceDefinition():
         self.CounterCallsOut += 1
 
     def def_line(self):
-        if self.LineNumDef == None:
+        if self.LineNumDef == -1:
             return "-- no def line --"
         return self.LinesSourceFile[self.LineNumDef]
 
@@ -54,8 +54,11 @@ class NameSpaceOneCall():
         self.ExecLines = []
 
         if NameSpaceDef == None:
+
             NameSpaceDefCounter = NameSpaceDefinition.DefCounter
-            NameSpaceDef = NameSpaceDefinition((f"NoDefFile_{NameSpaceDefCounter}", f"NoDefLineNo_{NameSpaceDefCounter}" ),f"NoDefName_{NameSpaceDefCounter}" )
+            NameSpaceDef = NameSpaceDefinition((f"NoDefFile_{NameSpaceDefCounter}",
+                                                f"NoDefLineNo_{NameSpaceDefCounter}"),
+                                               f"NoDefName_{NameSpaceDefCounter}" )
 
         self.NameSpaceDef = NameSpaceDef
 
@@ -160,11 +163,9 @@ class Debugger(bdb.Bdb):
         if Fn in Debugger.SourceFiles:
             LineInserted = f"{LineNo} {Debugger.SourceFiles[Fn][LineNo]}"
 
-        print(">>>>>>>>>>>", Frame.f_locals)
-        if Debugger.NameSpaceActual.id() == ("NoDefFile", "NoDefLineNo"):
-            Fn = "NoDefFile"
-            LineNo = "NoDefLineNo"
-        LineObj = ExecLine(Fn, LineNo, LineInserted, Frame.f_locals, Debugger.NameSpaceActual)
+        print(">>>>>>>>>>> id:", id(Frame.f_locals), Frame.f_locals)
+        # LineObj = ExecLine(Fn, LineNo, LineInserted, Frame.f_locals, Debugger.NameSpaceActual)
+        LineObj = ExecLine(Debugger.NameSpaceActual.NameSpaceDef.FileName, LineNo, LineInserted, Frame.f_locals, Debugger.NameSpaceActual)
         Debugger.NameSpaceActual.ExecLines.append(LineObj)
 
         Debugger.ExecutionAll.append(LineObj)
