@@ -12,9 +12,18 @@ class NameSpaceDefinition():
         self.LinesSourceFile = LinesSourceFile
         self.LinesExecuted = {}
         self.LineNumDef = LineNumDef
+
+        # in list of all Namespaces: File and Linenum
         self.Id = Id
+
         self.GuiElems = []
         self.LineNumRetLatest = LineNumDef  # the latest Return Linenum
+
+        self.CounterCalled = 0
+        self.CounterCallsTotalUnderNameSpace = 0
+
+    def count_called(self):
+        self.CounterCalled += 1
 
     def def_line(self):
         return self.LinesSourceFile[self.LineNumDef]
@@ -31,9 +40,9 @@ class NameSpaceOneCall():
         self.RetVal = None
         self.Level = Level
 
-        # in list of all Namespaces, File and Linenum
-        # is he best uniq id
         self.NameSpaceDef = NameSpaceDef
+        if NameSpaceDef: # root hasn't got def
+            NameSpaceDef.count_called()
 
     def name(self):
         if self.NameSpaceDef:
