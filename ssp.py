@@ -28,7 +28,7 @@ Prg["debugger"].run("riverbank.main()")
 print(Prg["debugger"].Root)
 
 for ExecNext in Prg["debugger"].ExecutionAll:
-    print(ExecNext)
+    print("\n\n", ExecNext)
 
 # for Id, NameSpaceDef in Prg["debugger"].NameSpaceDefinitions.items():
 #     print(NameSpaceDef)

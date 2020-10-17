@@ -1,4 +1,4 @@
-import bdb
+import bdb, pprint
 from util import *
 
 class NameSpaceDefinition():
@@ -108,7 +108,8 @@ class ExecLine():
             ExecLine.LineLenMax = Len
 
     def __str__(self):
-        return f"{self.LineNum} {self.Line} {self.FileName}"
+        # return f"EXEC: {self.LineNum} {self.Line} {self.FileName}\nLOCAL " + str(self.Locals)
+        return f"LOCAL " + pprint.pformat(self.Locals) + f"\nnext > {self.LineNum} {self.Line}\nLOCAL " + pprint.pformat(self.Locals)
 
     def filterOnlyUserVariables(self, FrameLocals):
         # in this Frame we can find special vars, keys, everything that needed to execute Py program,
@@ -190,7 +191,7 @@ class Debugger(bdb.Bdb):
         print(">>>>>>>>>>> id:", id(Frame.f_locals), Frame.f_locals)
         # LineObj = ExecLine(Fn, LineNo, LineInserted, Frame.f_locals, Debugger.NameSpaceActual)
         # FileName is "<string>" at first execution so I use the namespace's default
-        LineObj = ExecLine(Debugger.NameSpaceActual.NameSpaceDef.FileName, LineNo, LineInserted, Frame.f_locals, Debugger.NameSpaceActual)
+        LineObj = ExecLine(Debugger.NameSpaceActual.NameSpaceDef.FileName, LineNo, Line, Frame.f_locals, Debugger.NameSpaceActual)
         Debugger.NameSpaceActual.ExecLines.append(LineObj)
 
         Debugger.ExecutionAll.append(LineObj)

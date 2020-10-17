@@ -42,6 +42,8 @@ def transfer(From, To, Amount, CurrencyOfTransaction):
     return "transfer"
 
 def main(PrgArgs=[]):
+    print("PRGARGS", PrgArgs)
+    
     # Salary from Ltd to Bob and Jim:
     transfer(AccLtd, AccBob, 26.5, "USD")
     transfer(AccLtd, AccJim, 23.2, "EUR")
@@ -50,7 +52,7 @@ def main(PrgArgs=[]):
     transfer(AccJim, AccRestaurant, 1, "EUR")
 
     # dinner party, Bob pay his bill to Jim
-    transfer(AccBob, AccJim, 0.4, "GBP")
+    TransferReply = transfer(AccBob, AccJim, 0.4, "GBP")
 
     return "End"
 

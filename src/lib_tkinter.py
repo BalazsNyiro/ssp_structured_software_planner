@@ -155,7 +155,7 @@ def namespace_draw(Prg, CanvasWidget, NameSpace,  NameSpaceCounter):
 
     for LineNum, LineObj in NameSpaceGeneral.LinesExecutedAllInNameSpaceDef.items():
         TxtSrcGui = CanvasWidget.create_text(X + BoxPadding, Ytext, fill="black", font=FontSrcLine,
-                                             text=LineObj.Line, anchor=tkinter.NW)
+                                             text=f"{LineObj.LineNum:>3} {LineObj.Line}", anchor=tkinter.NW)
         SrcTextElems.append(TxtSrcGui)
 
         # one line can be executed more than once, so we store only one Gui in general,
