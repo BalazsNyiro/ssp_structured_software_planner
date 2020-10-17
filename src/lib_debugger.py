@@ -20,13 +20,20 @@ class NameSpaceDefinition():
         self.LineNumRetLatest = LineNumDef  # the latest Return Linenum
 
         self.CounterCalled = 0
+        self.CounterCallsOut = 0
         self.CounterCallsTotalUnderNameSpace = 0
 
-    def count_called(self):
+    def counter_called_inc(self):
         self.CounterCalled += 1
+
+    def counter_calls_out(self):
+        self.CounterCallsOut += 1
 
     def def_line(self):
         return self.LinesSourceFile[self.LineNumDef]
+
+    def __str__(self):
+        return f"total Calls under: {self.CounterCallsTotalUnderNameSpace:>3}    in: {self.CounterCalled:>3}  out: {self.CounterCallsOut:>3}  {self.Name}    "
 
 class NameSpaceOneCall():
     def __init__(self, NameSpaceDef=None,
@@ -42,7 +49,18 @@ class NameSpaceOneCall():
 
         self.NameSpaceDef = NameSpaceDef
         if NameSpaceDef: # root hasn't got def
-            NameSpaceDef.count_called()
+            self.NameSpaceDef.counter_called_inc()
+
+        if self.Parent and self.Parent.NameSpaceDef:
+            self.Parent.NameSpaceDef.counter_calls_out()
+
+        self.name_space_def_parent_total_counter_inc()
+
+    def name_space_def_parent_total_counter_inc(self):
+        if self.Parent:
+            if self.Parent.NameSpaceDef:
+                self.Parent.NameSpaceDef.CounterCallsTotalUnderNameSpace += 1
+            self.Parent.name_space_def_parent_total_counter_inc()
 
     def name(self):
         if self.NameSpaceDef:

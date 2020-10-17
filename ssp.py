@@ -30,6 +30,9 @@ print(Prg["debugger"].Root)
 for ExecNext in Prg["debugger"].ExecutionAll:
     print(ExecNext)
 
+for Id, NameSpaceDef in Prg["debugger"].NameSpaceDefinitions.items():
+    print(NameSpaceDef)
+
 CanvasWidget = None
 
 # https://stackoverflow.com/questions/43731784/tkinter-canvas-scrollbar-with-grid
