@@ -1,4 +1,5 @@
-import bdb, util, sys
+import bdb
+from util import *
 
 class NameSpaceDefinition():
     DefCounter = 0
@@ -93,11 +94,11 @@ class ExecLine():
     FileNameLenMax = 0
     LineLenMax = 0
 
-    def __init__(self, FileName, LineNum, Line, Locals, NameSpaceOneCall):
+    def __init__(self, FileName, LineNum, Line, FrameLocals, NameSpaceOneCall):
         self.FileName = FileName
         self.LineNum = LineNum
         self.Line = Line
-        self.Locals = Locals
+        self.Locals = self.filterOnlyUserVariables(FrameLocals)
         self.NameSpaceOneCallWhereExecuted = NameSpaceOneCall
 
         if Len := len(FileName) > ExecLine.FileNameLenMax:
@@ -108,6 +109,29 @@ class ExecLine():
 
     def __str__(self):
         return f"{self.LineNum} {self.Line} {self.FileName}"
+
+    def filterOnlyUserVariables(self, FrameLocals):
+        # in this Frame we can find special vars, keys, everything that needed to execute Py program,
+        # we need only simple data types in modelling/program planning system
+
+        def copy(Obj):
+            if is_simple(Obj): return Obj
+
+            if is_list(Obj):
+                Parent = []
+                for Elem in Obj:
+                    Parent.append(copy(Elem))
+
+            if is_dict(Obj):
+                Parent = dict()
+                for Key, Val in Obj.items():
+                    if is_simple(Key):
+                        Parent[Key] = copy(Val)
+                return Parent
+
+            return "too complicated elem to duplicate"
+
+        return copy(FrameLocals)
 
 class Debugger(bdb.Bdb):
     Root = NameSpaceOneCall()
@@ -122,7 +146,7 @@ class Debugger(bdb.Bdb):
         LineNumDef = frame.f_lineno
         if FileName not in Debugger.SourceFiles:
             Debugger.SourceFiles[FileName] = ["# hidden zero line, debugger is 1 based'"]
-            Debugger.SourceFiles[FileName].extend(util.file_read_lines(FileName))
+            Debugger.SourceFiles[FileName].extend(file_read_lines(FileName))
 
         print("+++ call", Name, args, LineNumDef, FileName)
 
@@ -157,7 +181,7 @@ class Debugger(bdb.Bdb):
 
         LineNo = Frame.f_lineno
         Line = linecache.getline(Fn, LineNo, Frame.f_globals)
-        print('+++ USERLINE', Debugger.NameSpaceActual.name(), Fn, LineNo, Name, ':', Line.strip(), "frame locals: ", Frame.f_locals)
+        print('+++ USERLINE', Debugger.NameSpaceActual.name(), Fn, LineNo, Name, ':', Line.strip(), )
 
         LineInserted = f"{LineNo} {Line}"
         if Fn in Debugger.SourceFiles:
@@ -165,6 +189,7 @@ class Debugger(bdb.Bdb):
 
         print(">>>>>>>>>>> id:", id(Frame.f_locals), Frame.f_locals)
         # LineObj = ExecLine(Fn, LineNo, LineInserted, Frame.f_locals, Debugger.NameSpaceActual)
+        # FileName is "<string>" at first execution so I use the namespace's default
         LineObj = ExecLine(Debugger.NameSpaceActual.NameSpaceDef.FileName, LineNo, LineInserted, Frame.f_locals, Debugger.NameSpaceActual)
         Debugger.NameSpaceActual.ExecLines.append(LineObj)
 

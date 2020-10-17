@@ -49,7 +49,9 @@ def win_main(Prg, CanvasWidth=800, CanvasHeight=600):
     NameSpaceCounter = 0
     for NameSpaceId in NameSpaceDefinitions:
         NameSpaceDef = NameSpaceDefinitions[NameSpaceId]
-        if "NoDefName" not in NameSpaceDef.Name:
+
+        #if "NoDefName" not in NameSpaceDef.Name:
+        if True:
             lib_tkinter.namespace_draw(Prg, CanvasWidget, NameSpaceDef, NameSpaceCounter)
             NameSpaceCounter += 1
 
