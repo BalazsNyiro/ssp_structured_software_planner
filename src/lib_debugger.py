@@ -1,16 +1,19 @@
-import bdb, util
+import bdb, util, copy
 
 class NameSpaceDefinition():
+    DefCounter = 0
     def __init__(self, Id,
                  Name,
                  FileName=None,
                  LineNumDef=None,
                  LinesSourceFile = None
                  ):
+        NameSpaceDefinition.DefCounter += 1
+
         self.FileName = FileName
         self.Name = Name
         self.LinesSourceFile = LinesSourceFile
-        self.LinesExecuted = {}
+        self.LinesExecutedAllInNameSpaceDef = {}
         self.LineNumDef = LineNumDef
 
         # in list of all Namespaces: File and Linenum
@@ -30,6 +33,8 @@ class NameSpaceDefinition():
         self.CounterCallsOut += 1
 
     def def_line(self):
+        if self.LineNumDef == None:
+            return "-- no def line --"
         return self.LinesSourceFile[self.LineNumDef]
 
     def __str__(self):
@@ -46,20 +51,22 @@ class NameSpaceOneCall():
         self.Fun = Fun
         self.RetVal = None
         self.Level = Level
+        self.ExecLines = []
+
+        if NameSpaceDef == None:
+            NameSpaceDefCounter = NameSpaceDefinition.DefCounter
+            NameSpaceDef = NameSpaceDefinition((f"NoDefFile_{NameSpaceDefCounter}", f"NoDefLineNo_{NameSpaceDefCounter}" ),f"NoDefName_{NameSpaceDefCounter}" )
 
         self.NameSpaceDef = NameSpaceDef
-        if NameSpaceDef: # root hasn't got def
-            self.NameSpaceDef.counter_called_inc()
 
-        if self.Parent and self.Parent.NameSpaceDef:
+        if self.Parent:
             self.Parent.NameSpaceDef.counter_calls_out()
 
         self.name_space_def_parent_total_counter_inc()
 
     def name_space_def_parent_total_counter_inc(self):
         if self.Parent:
-            if self.Parent.NameSpaceDef:
-                self.Parent.NameSpaceDef.CounterCallsTotalUnderNameSpace += 1
+            self.Parent.NameSpaceDef.CounterCallsTotalUnderNameSpace += 1
             self.Parent.name_space_def_parent_total_counter_inc()
 
     def name(self):
@@ -68,9 +75,7 @@ class NameSpaceOneCall():
         return "NoDefName"
 
     def id(self):
-        if self.NameSpaceDef:
-            return self.NameSpaceDef.Id
-        return ("NoDefFile", "NoDefLineNo")
+        return self.NameSpaceDef.Id
 
     def __str__(self):
         Prefix = " " * self.Level
@@ -85,11 +90,12 @@ class ExecLine():
     FileNameLenMax = 0
     LineLenMax = 0
 
-    def __init__(self, FileName, LineNum, Line, Locals):
+    def __init__(self, FileName, LineNum, Line, Locals, NameSpaceOneCall):
         self.FileName = FileName
         self.LineNum = LineNum
         self.Line = Line
         self.Locals = Locals
+        self.NameSpaceOneCallWhereExecuted = NameSpaceOneCall
 
         if Len := len(FileName) > ExecLine.FileNameLenMax:
             ExecLine.FileNameLenMax = Len
@@ -102,7 +108,7 @@ class ExecLine():
 
 class Debugger(bdb.Bdb):
     Root = NameSpaceOneCall()
-    NameSpaceDefinitions = {}
+    NameSpaceDefinitions = {Root.id(): Root.NameSpaceDef}
     NameSpaceActual = Root
     SourceFiles = {}
     ExecutionAll = []
@@ -122,6 +128,7 @@ class Debugger(bdb.Bdb):
         NameSpaceDefId = (FileName, LineNumDef)
         # Save all namespaces Once
         if NameSpaceDefId not in Debugger.NameSpaceDefinitions:
+
             Debugger.NameSpaceDefinitions[NameSpaceDefId] = \
                 NameSpaceDefinition(NameSpaceDefId,
                                     Name,
@@ -132,33 +139,36 @@ class Debugger(bdb.Bdb):
         ##############################################################################
         NameSpace = NameSpaceOneCall(Debugger.NameSpaceDefinitions[NameSpaceDefId],
                                      Parent = Parent,
-                                     Level = Parent.Level+1,
-                                     )
+                                     Level = Parent.Level+1)
 
         ##############################################################################
         Debugger.NameSpaceActual.ChildrenCalls.append(NameSpace)
         Debugger.NameSpaceActual = NameSpace
 
 
-    def user_line(self, frame):
+    def user_line(self, Frame):
         import linecache
-        name = frame.f_code.co_name
-        if not name: name = '???'
-        Fn = self.canonic(frame.f_code.co_filename)
+        Name = Frame.f_code.co_name
+        if not Name: Name = '???'
+        Fn = self.canonic(Frame.f_code.co_filename)
 
-        LineNo = frame.f_lineno
-        Line = linecache.getline(Fn, LineNo, frame.f_globals)
-        print('+++ USERLINE',Debugger.NameSpaceActual.name(), Fn, LineNo, name, ':', Line.strip(), "frame locals: ", frame.f_locals)
+        LineNo = Frame.f_lineno
+        Line = linecache.getline(Fn, LineNo, Frame.f_globals)
+        print('+++ USERLINE', Debugger.NameSpaceActual.name(), Fn, LineNo, Name, ':', Line.strip(), "frame locals: ", Frame.f_locals)
 
         LineInserted = f"{LineNo} {Line}"
         if Fn in Debugger.SourceFiles:
             LineInserted = f"{LineNo} {Debugger.SourceFiles[Fn][LineNo]}"
 
-        LineObj = ExecLine(Fn, LineNo, LineInserted, frame.f_locals)
+        print(">>>>>>>>>>>", Frame.f_locals)
+        if Debugger.NameSpaceActual.id() == ("NoDefFile", "NoDefLineNo"):
+            Fn = "NoDefFile"
+            LineNo = "NoDefLineNo"
+        LineObj = ExecLine(Fn, LineNo, LineInserted, Frame.f_locals, Debugger.NameSpaceActual)
+        Debugger.NameSpaceActual.ExecLines.append(LineObj)
 
         Debugger.ExecutionAll.append(LineObj)
-        if Debugger.NameSpaceActual.id() != ("NoDefFile", "NoDefLineNo"): # no Root
-            Debugger.NameSpaceDefinitions[Debugger.NameSpaceActual.id()].LinesExecuted[LineNo] = LineObj
+        Debugger.NameSpaceDefinitions[Debugger.NameSpaceActual.id()].LinesExecutedAllInNameSpaceDef[LineNo] = LineObj
 
     def user_return(self, Frame, RetVal):
         Name = Frame.f_code.co_name or "<unknown>"

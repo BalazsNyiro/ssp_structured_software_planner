@@ -24,6 +24,7 @@ def key(event):
     if event.char in "jk":
         GuiLinesObjects = PrgLib["Player"]["GuiLinesObjects"]
         ExecLine = ExecutionAll[Player["ExecNext"]]
+        print("execline's NameSpace", ExecLine.NameSpaceOneCallWhereExecuted.name())
         TextObjInGui = GuiLinesObjects[(ExecLine.FileName, ExecLine.Line)]
 
         Bounds = Player["CanvasWidget"].bbox(TextObjInGui)
@@ -152,7 +153,7 @@ def namespace_draw(Prg, CanvasWidget, NameSpace,  NameSpaceCounter):
     SrcTextElems = []
     NameSpaceGeneral = Prg["debugger"].NameSpaceDefinitions[NameSpace.Id]
 
-    for LineNum, LineObj in NameSpaceGeneral.LinesExecuted.items():
+    for LineNum, LineObj in NameSpaceGeneral.LinesExecutedAllInNameSpaceDef.items():
         TxtSrcGui = CanvasWidget.create_text(X + BoxPadding, Ytext, fill="black", font=FontSrcLine,
                                              text=LineObj.Line, anchor=tkinter.NW)
         SrcTextElems.append(TxtSrcGui)
