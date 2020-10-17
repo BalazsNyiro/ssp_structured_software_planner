@@ -1,7 +1,10 @@
 import bdb, util
 
-class NameSpaceGeneral():
-    def __init__(self, Name="", FileName=None, LineNumDef=None,
+class NameSpaceDefinition():
+    def __init__(self, Id,
+                 Name,
+                 FileName=None,
+                 LineNumDef=None,
                  LinesSourceFile = None
                  ):
         self.FileName = FileName
@@ -9,38 +12,46 @@ class NameSpaceGeneral():
         self.LinesSourceFile = LinesSourceFile
         self.LinesExecuted = {}
         self.LineNumDef = LineNumDef
-        self.Id = (FileName, LineNumDef)
+        self.Id = Id
         self.GuiElems = []
+        self.LineNumRetLatest = LineNumDef  # the latest Return Linenum
 
     def def_line(self):
         return self.LinesSourceFile[self.LineNumDef]
 
 class NameSpaceOneCall():
-    def __init__(self, Name="", FileName=None, LineNumDef=None,
-                 Fun=False,
+    def __init__(self, NameSpaceDef=None,
+                 Fun=True,
                  Parent=None,
                  Level = 0):
-        self.ChildrenNameSpaces = []
+
+        self.ChildrenCalls = []
         self.Parent = Parent
         self.Fun = Fun
-        self.LineNumDef = LineNumDef
-        self.LineNumRetLatest = LineNumDef  # the latest Return Linenum
-        self.FileName = FileName
-        self.Name = Name
         self.RetVal = None
         self.Level = Level
 
         # in list of all Namespaces, File and Linenum
         # is he best uniq id
-        self.Id = (FileName, LineNumDef)
+        self.NameSpaceDef = NameSpaceDef
+
+    def name(self):
+        if self.NameSpaceDef:
+            return self.NameSpaceDef.Name
+        return "NoDefName"
+
+    def id(self):
+        if self.NameSpaceDef:
+            return self.NameSpaceDef.Id
+        return ("NoDefFile", "NoDefLineNo")
 
     def __str__(self):
         Prefix = " " * self.Level
         Out = []
-        Out.append(f"{Prefix} -> {self.Name}")
-        for Child in self.ChildrenNameSpaces:
+        Out.append(f"{Prefix} -> {self.name()}")
+        for Child in self.ChildrenCalls:
             Out.append(Child.__str__())
-        Out.append(f"{Prefix} <- {self.Name}: {self.RetVal}")
+        Out.append(f"{Prefix} <- {self.name()}: {self.RetVal}")
         return "\n".join(Out)
 
 class ExecLine():
@@ -63,8 +74,8 @@ class ExecLine():
         return f"{self.LineNum} {self.Line} {self.FileName}"
 
 class Debugger(bdb.Bdb):
-    Root = NameSpaceOneCall(Name="Root")
-    NameSpaceGenerals = {}
+    Root = NameSpaceOneCall()
+    NameSpaceDefinitions = {}
     NameSpaceActual = Root
     SourceFiles = {}
     ExecutionAll = []
@@ -80,21 +91,27 @@ class Debugger(bdb.Bdb):
         print("+++ call", Name, args, LineNumDef, FileName)
 
         Parent = Debugger.NameSpaceActual
-        NameSpace = NameSpaceOneCall(Name=Name, FileName=FileName,
-                                     LineNumDef=LineNumDef, Fun=True,
+        ##############################################################################
+        NameSpaceDefId = (FileName, LineNumDef)
+        # Save all namespaces Once
+        if NameSpaceDefId not in Debugger.NameSpaceDefinitions:
+            Debugger.NameSpaceDefinitions[NameSpaceDefId] = \
+                NameSpaceDefinition(NameSpaceDefId,
+                                    Name,
+                                    FileName=FileName,
+                                    LineNumDef=LineNumDef,
+                                    LinesSourceFile = Debugger.SourceFiles[FileName])
+
+        ##############################################################################
+        NameSpace = NameSpaceOneCall(Debugger.NameSpaceDefinitions[NameSpaceDefId],
                                      Parent = Parent,
                                      Level = Parent.Level+1,
                                      )
-        Debugger.NameSpaceActual.ChildrenNameSpaces.append(NameSpace)
+
+        ##############################################################################
+        Debugger.NameSpaceActual.ChildrenCalls.append(NameSpace)
         Debugger.NameSpaceActual = NameSpace
 
-        # Save all namespaces Once
-        if NameSpace.Id not in Debugger.NameSpaceGenerals:
-            Debugger.NameSpaceGenerals[NameSpace.Id] = \
-                NameSpaceGeneral(Name=NameSpace.Name,
-                                 FileName=NameSpace.FileName,
-                                 LineNumDef=NameSpace.LineNumDef,
-                                 LinesSourceFile = Debugger.SourceFiles[FileName])
 
     def user_line(self, frame):
         import linecache
@@ -104,7 +121,7 @@ class Debugger(bdb.Bdb):
 
         LineNo = frame.f_lineno
         Line = linecache.getline(Fn, LineNo, frame.f_globals)
-        print('+++ USERLINE',Debugger.NameSpaceActual.Name, Fn, LineNo, name, ':', Line.strip(), "frame locals: ", frame.f_locals)
+        print('+++ USERLINE',Debugger.NameSpaceActual.name(), Fn, LineNo, name, ':', Line.strip(), "frame locals: ", frame.f_locals)
 
         LineInserted = f"{LineNo} {Line}"
         if Fn in Debugger.SourceFiles:
@@ -113,24 +130,29 @@ class Debugger(bdb.Bdb):
         LineObj = ExecLine(Fn, LineNo, LineInserted, frame.f_locals)
 
         Debugger.ExecutionAll.append(LineObj)
-        if Debugger.NameSpaceActual.Id != (None, None): # not Root
-            Debugger.NameSpaceGenerals[Debugger.NameSpaceActual.Id].LinesExecuted[LineNo] = LineObj
+        if Debugger.NameSpaceActual.id() != ("NoDefFile", "NoDefLineNo"): # no Root
+            Debugger.NameSpaceDefinitions[Debugger.NameSpaceActual.id()].LinesExecuted[LineNo] = LineObj
 
     def user_return(self, Frame, RetVal):
         Name = Frame.f_code.co_name or "<unknown>"
         LineNumRet = Frame.f_lineno
         print('+++ return', Name, RetVal, LineNumRet)
-        Debugger.NameSpaceActual.RetVal = RetVal
 
-        if Debugger.NameSpaceActual.LineNumRetLatest is None:
-            # root elem hasn't got LineNums
-            Debugger.NameSpaceActual.LineNumRetLatest = LineNumRet
-        else:
-            if LineNumRet > Debugger.NameSpaceActual.LineNumRetLatest:
-                Debugger.NameSpaceActual.LineNumRetLatest = LineNumRet
+        NameSpaceActual = Debugger.NameSpaceActual
+        NameSpaceActual.RetVal = RetVal
 
-        Debugger.NameSpaceActual.LineNumRetLatest = RetVal
-        Debugger.NameSpaceActual = Debugger.NameSpaceActual.Parent
+        NameSpaceDef = NameSpaceActual.NameSpaceDef
+        if NameSpaceDef: # not root elem, it hasn't got name space def
+
+            if NameSpaceDef.LineNumRetLatest is None:
+                # root elem hasn't got LineNums
+                NameSpaceDef.LineNumRetLatest = LineNumRet
+
+            elif LineNumRet > NameSpaceDef.LineNumRetLatest:
+                NameSpaceDef.LineNumRetLatest = LineNumRet
+
+        if Debugger.NameSpaceActual.Parent:
+            Debugger.NameSpaceActual = Debugger.NameSpaceActual.Parent
 
     def user_exception(self, frame, exc_stuff):
         #print('+++ exception', exc_stuff)

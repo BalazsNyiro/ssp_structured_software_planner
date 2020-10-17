@@ -150,7 +150,7 @@ def namespace_draw(Prg, CanvasWidget, NameSpace,  NameSpaceCounter):
 
     TxtSrcWidthMax = 0
     SrcTextElems = []
-    NameSpaceGeneral = Prg["debugger"].NameSpaceGenerals[NameSpace.Id]
+    NameSpaceGeneral = Prg["debugger"].NameSpaceDefinitions[NameSpace.Id]
 
     for LineNum, LineObj in NameSpaceGeneral.LinesExecuted.items():
         TxtSrcGui = CanvasWidget.create_text(X + BoxPadding, Ytext, fill="black", font=FontSrcLine,
