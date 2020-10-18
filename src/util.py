@@ -52,6 +52,7 @@ def diff_dicts(Old, New):
         else:
             if Old[Key] != New[Key]:
                 Diff[Key] = diff_objects(Old[Key], New[Key])
+    return Diff
 
 def diff_lists(Old, New):
     Diff = []

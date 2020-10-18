@@ -107,9 +107,11 @@ class NameSpaceOneCall():
         # help files writing out
         LocalsBegin = self.ExecLines[0].Locals
         LocalsEnd = self.ExecLines[-1].Locals
+        # print("\nLocalsBegin", LocalsBegin)
+        # print("\nLocalsEnd", LocalsEnd)
 
-        file_write_simple(os.path.join(Dir, FileLocalsBegin), "<pre>" + pprint.pformat(LocalsBegin)+"</pre>")
-        file_write_simple(os.path.join(Dir, FileLocalsDiff),  "<pre>" + pprint.pformat( diff_objects(LocalsBegin, LocalsEnd))+"</pre>")
+        file_write_simple(os.path.join(Dir, FileLocalsBegin), "<pre>begin:" + pprint.pformat(LocalsBegin)+"</pre>")
+        file_write_simple(os.path.join(Dir, FileLocalsDiff),  "<pre> diff: " + pprint.pformat( diff_objects(LocalsBegin, LocalsEnd))+"</pre>")
 
 
         Out = []
