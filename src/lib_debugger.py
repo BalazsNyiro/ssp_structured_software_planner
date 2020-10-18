@@ -1,4 +1,4 @@
-import bdb, pprint
+import bdb, pprint, sys
 from util import *
 
 class NameSpaceDefinition():
@@ -109,7 +109,7 @@ class ExecLine():
 
     def __str__(self):
         # return f"EXEC: {self.LineNum} {self.Line} {self.FileName}\nLOCAL " + str(self.Locals)
-        return f"LOCAL " + pprint.pformat(self.Locals) + f"\nnext > {self.LineNum} {self.Line}\nLOCAL " + pprint.pformat(self.Locals)
+        return f"\n========================\nLOCAL " + pprint.pformat(self.Locals) + f"\nnext > {self.LineNum} {self.Line}..........................."
 
     def filterOnlyUserVariables(self, FrameLocals):
         # in this Frame we can find special vars, keys, everything that needed to execute Py program,
@@ -122,6 +122,7 @@ class ExecLine():
                 Parent = []
                 for Elem in Obj:
                     Parent.append(copy(Elem))
+                return Parent
 
             if is_dict(Obj):
                 Parent = dict()
@@ -130,6 +131,7 @@ class ExecLine():
                         Parent[Key] = copy(Val)
                 return Parent
 
+            # print("too:", type(Obj))
             return "too complicated elem to duplicate"
 
         return copy(FrameLocals)

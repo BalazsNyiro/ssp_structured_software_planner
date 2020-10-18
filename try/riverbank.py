@@ -43,7 +43,7 @@ def transfer(From, To, Amount, CurrencyOfTransaction):
 
 def main(PrgArgs=[]):
     print("PRGARGS", PrgArgs)
-    
+
     # Salary from Ltd to Bob and Jim:
     transfer(AccLtd, AccBob, 26.5, "USD")
     transfer(AccLtd, AccJim, 23.2, "EUR")
