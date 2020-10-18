@@ -96,17 +96,21 @@ class NameSpaceOneCall():
 
         FileId = f"{self.id()[0].replace('/','_')}_{self.id()[1]}"
 
-        FileLocalsBegin = os.path.join(f"local_{FileId}_begin.html")
+        FileLocalsBegin = f"local_{FileId}_begin.html"
+        FileLocalsDiff = f"local_{FileId}_diff.html"
+
         LinkOpenBegin = f"<a href='{FileLocalsBegin}' target='right'>"
+        LinkOpenDiff = f"<a href='{FileLocalsDiff}' target='right'>"
         LinkClose = "</a>"
 
-        FileLocalsDiff= os.path.join(Dir, f"local_{FileId}_diff.html")
 
         # help files writing out
-        file_write_simple(FileLocalsBegin, "<pre>" + pprint.pformat(self.ExecLines[0].Locals)+"</pre>")
-        file_write_simple(FileLocalsDiff, "<pre>" + pprint.pformat(self.ExecLines[-1].Locals)+"</pre>")
+        LocalsBegin = self.ExecLines[0].Locals
+        LocalsEnd = self.ExecLines[-1].Locals
 
-        FileCalls = os.path.join(Dir, "calls.html")
+        file_write_simple(os.path.join(Dir, FileLocalsBegin), "<pre>" + pprint.pformat(LocalsBegin)+"</pre>")
+        file_write_simple(os.path.join(Dir, FileLocalsDiff),  "<pre>" + pprint.pformat( diff_objects(LocalsBegin, LocalsEnd))+"</pre>")
+
 
         Out = []
         if FirstCall:
@@ -117,10 +121,11 @@ class NameSpaceOneCall():
         for Child in self.ChildrenCalls:
             Out.append(Child.html_create(FirstCall=False))
 
-        Out.append(f"{Prefix} <- {self.name()}: {self.RetVal}")
+        Out.append(f"{Prefix} <- {LinkOpenDiff}{self.name()}{LinkClose}: {self.RetVal}")
 
         if FirstCall:
-            file_write_simple(FileCalls, "\n".join(Out) + "\n</pre>", Mode="a")
+            FileCalls = os.path.join(Dir, "calls.html")
+            file_write_simple(FileCalls, "\n".join(Out) + "\n</pre>", Mode="w")
         else:
             return "\n".join(Out)
 

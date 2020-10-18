@@ -43,3 +43,40 @@ def is_tuple(Obj):
 
 def is_simple(Obj):
     return is_int(Obj) or is_float(Obj) or is_str(Obj) or is_none(Obj) or is_bool(Obj)
+
+def diff_dicts(Old, New):
+    Diff = {}
+    for Key, Val in New.items():
+        if Key not in Old:
+            Diff[Key] = New[Key]
+        else:
+            if Old[Key] != New[Key]:
+                Diff[Key] = diff_objects(Old[Key], New[Key])
+
+def diff_lists(Old, New):
+    Diff = []
+    for Id, Elem in enumerate(New):
+        Difference = diff_objects(Old[Id], New[Id])
+        Diff.append(Difference)
+    return Diff
+
+# return with difference.
+def diff_objects(Old, New, FirstCall=True):
+    if type(Old) == type(New):
+        if is_simple(Old) and is_simple(New):
+            if Old == New:
+                return ""
+            else:
+                return New
+
+        else:  # not simple types
+            if is_dict(Old):
+                return diff_dicts(Old, New)
+
+            if is_list(Old):
+               return diff_lists(Old, New)
+
+    else: # different types, New is total different
+        return New
+
+    return f"can't create diff of objects: {str(A)} {str(B)}"

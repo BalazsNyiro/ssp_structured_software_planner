@@ -16,8 +16,9 @@ Rates = {("EUR", "GBP") : 0.6,
 
 def change(AmountFrom, CurrencyFrom, CurrencyTo):
     if CurrencyFrom == CurrencyTo:
-        return AmountFrom
-    AmountTo = AmountFrom * Rates[(CurrencyFrom, CurrencyTo)]
+        AmountTo = AmountFrom
+    else:
+        AmountTo = AmountFrom * Rates[(CurrencyFrom, CurrencyTo)]
     print(f"  {AmountFrom} {CurrencyFrom} -> {AmountTo:.2f} {CurrencyTo}")
     return AmountTo
 
@@ -41,8 +42,14 @@ def transfer(From, To, Amount, CurrencyOfTransaction):
     print()
     return "transfer"
 
+
+def test (A,B):
+    Ret = A + B
+    return Ret
 def main(PrgArgs=[]):
     print("PRGARGS", PrgArgs)
+
+    return test(4,5)
 
     # Salary from Ltd to Bob and Jim:
     transfer(AccLtd, AccBob, 26.5, "USD")
