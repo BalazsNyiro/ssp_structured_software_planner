@@ -25,13 +25,16 @@ import riverbank
 # because of set_break we can see all line execution
 Prg["debugger"].set_break("try/riverbank.py", 1)
 Prg["debugger"].run("riverbank.main()")
+
 print(Prg["debugger"].Root)
+Prg["debugger"].Root.html_create()
 
 for ExecNext in Prg["debugger"].ExecutionAll:
     print("\n\n", ExecNext)
 
 # for Id, NameSpaceDef in Prg["debugger"].NameSpaceDefinitions.items():
 #     print(NameSpaceDef)
+sys.exit()
 
 CanvasWidget = None
 

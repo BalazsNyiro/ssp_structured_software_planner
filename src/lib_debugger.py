@@ -1,4 +1,4 @@
-import bdb, pprint, sys
+import bdb, pprint, sys, os
 from util import *
 
 class NameSpaceDefinition():
@@ -86,9 +86,44 @@ class NameSpaceOneCall():
         Out = []
         Out.append(f"{Prefix} -> {self.name()}")
         for Child in self.ChildrenCalls:
-            Out.append(Child.__str__())
+            Out.append(str(Child))
         Out.append(f"{Prefix} <- {self.name()}: {self.RetVal}")
         return "\n".join(Out)
+
+    def html_create(self, Dir="./html", FirstCall=True):
+
+        Prefix = " " * self.Level
+
+        FileId = f"{self.id()[0].replace('/','_')}_{self.id()[1]}"
+
+        FileLocalsBegin = os.path.join(f"local_{FileId}_begin.html")
+        LinkOpenBegin = f"<a href='{FileLocalsBegin}' target='right'>"
+        LinkClose = "</a>"
+
+        FileLocalsDiff= os.path.join(Dir, f"local_{FileId}_diff.html")
+
+        # help files writing out
+        file_write_simple(FileLocalsBegin, "<pre>" + pprint.pformat(self.ExecLines[0].Locals)+"</pre>")
+        file_write_simple(FileLocalsDiff, "<pre>" + pprint.pformat(self.ExecLines[-1].Locals)+"</pre>")
+
+        FileCalls = os.path.join(Dir, "calls.html")
+
+        Out = []
+        if FirstCall:
+            Out.append("<pre>")
+
+        Out.append(f"{Prefix} -> {LinkOpenBegin}{self.name()}{LinkClose}")
+
+        for Child in self.ChildrenCalls:
+            Out.append(Child.html_create(FirstCall=False))
+
+        Out.append(f"{Prefix} <- {self.name()}: {self.RetVal}")
+
+        if FirstCall:
+            file_write_simple(FileCalls, "\n".join(Out) + "\n</pre>", Mode="a")
+        else:
+            return "\n".join(Out)
+
 
 class ExecLine():
     FileNameLenMax = 0

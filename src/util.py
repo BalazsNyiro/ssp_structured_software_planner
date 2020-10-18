@@ -1,3 +1,10 @@
+def file_write_simple(Fname, Content, Mode="w"):
+    if "b" not in Mode: # fixed unix style end of line
+        with open(Fname, Mode, newline="\n") as f:
+            f.write(Content)
+    else:
+        with open(Fname, Mode) as f:
+            f.write(Content)
 
 
 def file_read_lines(Fname):
