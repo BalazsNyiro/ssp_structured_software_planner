@@ -21,7 +21,6 @@ class NameSpaceDefinition():
         self.Id = Id
 
         self.GuiElems = []
-        self.LineNumRetLatest = LineNumDef  # the latest Return Linenum
 
         self.CounterCalled = 0
         self.CounterCallsOut = 0
@@ -42,10 +41,15 @@ class NameSpaceDefinition():
         return f"total Calls under: {self.CounterCallsTotalUnderNameSpace:>3}    in: {self.CounterCalled:>3}  out: {self.CounterCallsOut:>3}  {self.Name}    "
 
 class NameSpaceOneCall():
+    OneCallCounter = 0
+
     def __init__(self, NameSpaceDef=None,
                  Fun=True,
                  Parent=None,
                  Level = 0):
+
+        NameSpaceOneCall.OneCallCounter += 1
+        self.Id = NameSpaceOneCall.OneCallCounter
 
         self.ChildrenCalls = []
         self.Parent = Parent
@@ -68,6 +72,9 @@ class NameSpaceOneCall():
 
         self.name_space_def_parent_total_counter_inc()
 
+    def namespace_def_id(self):
+        return self.NameSpaceDef.Id
+
     def name_space_def_parent_total_counter_inc(self):
         if self.Parent:
             self.Parent.NameSpaceDef.CounterCallsTotalUnderNameSpace += 1
@@ -77,9 +84,6 @@ class NameSpaceOneCall():
         if self.NameSpaceDef:
             return self.NameSpaceDef.Name
         return "NoDefName"
-
-    def id(self):
-        return self.NameSpaceDef.Id
 
     def __str__(self):
         Prefix = " " * self.Level
@@ -94,10 +98,8 @@ class NameSpaceOneCall():
 
         Prefix = " " * self.Level
 
-        FileId = f"{self.id()[0].replace('/','_')}_{self.id()[1]}"
-
-        FileLocalsBegin = f"local_{FileId}_begin.html"
-        FileLocalsDiff = f"local_{FileId}_diff.html"
+        FileLocalsBegin = f"local_{self.Id}_begin.html"
+        FileLocalsDiff = f"local_{self.Id}_diff.html"
 
         LinkOpenBegin = f"<a href='{FileLocalsBegin}' target='right'>"
         LinkOpenDiff = f"<a href='{FileLocalsDiff}' target='right'>"
@@ -180,8 +182,8 @@ class ExecLine():
 
 class Debugger(bdb.Bdb):
     Root = NameSpaceOneCall()
-    NameSpaceDefinitions = {Root.id(): Root.NameSpaceDef}
-    NameSpaceActual = Root
+    NameSpaceDefinitions = {Root.namespace_def_id(): Root.NameSpaceDef}
+    NameSpaceActualCall = Root
     SourceFiles = {}
     ExecutionAll = []
 
@@ -195,7 +197,7 @@ class Debugger(bdb.Bdb):
 
         print("+++ call", Name, args, LineNumDef, FileName)
 
-        Parent = Debugger.NameSpaceActual
+        Parent = Debugger.NameSpaceActualCall
         ##############################################################################
         NameSpaceDefId = (FileName, LineNumDef)
         # Save all namespaces Once
@@ -214,8 +216,8 @@ class Debugger(bdb.Bdb):
                                      Level = Parent.Level+1)
 
         ##############################################################################
-        Debugger.NameSpaceActual.ChildrenCalls.append(NameSpace)
-        Debugger.NameSpaceActual = NameSpace
+        Debugger.NameSpaceActualCall.ChildrenCalls.append(NameSpace)
+        Debugger.NameSpaceActualCall = NameSpace
 
 
     def user_line(self, Frame):
@@ -226,41 +228,30 @@ class Debugger(bdb.Bdb):
 
         LineNo = Frame.f_lineno
         Line = linecache.getline(Fn, LineNo, Frame.f_globals)
-        print('+++ USERLINE', Debugger.NameSpaceActual.name(), Fn, LineNo, Name, ':', Line.strip(), )
+        print('+++ USERLINE', Debugger.NameSpaceActualCall.name(), Fn, LineNo, Name, ':', Line.strip(), )
 
         LineInserted = f"{LineNo} {Line}"
         if Fn in Debugger.SourceFiles:
             LineInserted = f"{LineNo} {Debugger.SourceFiles[Fn][LineNo]}"
 
         print(">>>>>>>>>>> id:", id(Frame.f_locals), Frame.f_locals)
-        # LineObj = ExecLine(Fn, LineNo, LineInserted, Frame.f_locals, Debugger.NameSpaceActual)
+        # LineObj = ExecLine(Fn, LineNo, LineInserted, Frame.f_locals, Debugger.NameSpaceActualCall)
         # FileName is "<string>" at first execution so I use the namespace's default
-        LineObj = ExecLine(Debugger.NameSpaceActual.NameSpaceDef.FileName, LineNo, Line, Frame.f_locals, Debugger.NameSpaceActual)
-        Debugger.NameSpaceActual.ExecLines.append(LineObj)
+        LineObj = ExecLine(Debugger.NameSpaceActualCall.NameSpaceDef.FileName, LineNo, Line, Frame.f_locals, Debugger.NameSpaceActualCall)
+        Debugger.NameSpaceActualCall.ExecLines.append(LineObj)
 
         Debugger.ExecutionAll.append(LineObj)
-        Debugger.NameSpaceDefinitions[Debugger.NameSpaceActual.id()].LinesExecutedAllInNameSpaceDef[LineNo] = LineObj
+        Debugger.NameSpaceDefinitions[Debugger.NameSpaceActualCall.NameSpaceDef.Id].LinesExecutedAllInNameSpaceDef[LineNo] = LineObj
 
     def user_return(self, Frame, RetVal):
         Name = Frame.f_code.co_name or "<unknown>"
         LineNumRet = Frame.f_lineno
         print('+++ return', Name, RetVal, LineNumRet)
 
-        NameSpaceActual = Debugger.NameSpaceActual
-        NameSpaceActual.RetVal = RetVal
+        Debugger.NameSpaceActualCall.RetVal = RetVal
 
-        NameSpaceDef = NameSpaceActual.NameSpaceDef
-        if NameSpaceDef: # not root elem, it hasn't got name space def
-
-            if NameSpaceDef.LineNumRetLatest is None:
-                # root elem hasn't got LineNums
-                NameSpaceDef.LineNumRetLatest = LineNumRet
-
-            elif LineNumRet > NameSpaceDef.LineNumRetLatest:
-                NameSpaceDef.LineNumRetLatest = LineNumRet
-
-        if Debugger.NameSpaceActual.Parent:
-            Debugger.NameSpaceActual = Debugger.NameSpaceActual.Parent
+        if Debugger.NameSpaceActualCall.Parent:
+            Debugger.NameSpaceActualCall = Debugger.NameSpaceActualCall.Parent
 
     def user_exception(self, frame, exc_stuff):
         #print('+++ exception', exc_stuff)
