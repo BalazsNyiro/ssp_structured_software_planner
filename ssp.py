@@ -6,11 +6,22 @@ DirPrgParent = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(DirPrgParent, "src"))
 sys.path.append(os.path.join(DirPrgParent, "try"))
 
-import lib_tkinter, lib_debugger
+import lib_tkinter_ssp, lib_debugger
 
+########################################
 Prg = {"DirPrgParent":  DirPrgParent,
        "Gui": dict(),
        "debugger": lib_debugger.Debugger(),
+       "hidden_calls_in_analyser": {
+           "__enter__",
+           "__exit__",
+           "_get_sep",
+           "__contains__",
+           "_joinrealpath",
+           "__getattr__",
+           "__getitem__",
+           "__init__",
+       },
        "Player": {
            "ExecNext": -1,
            "ProcSteps": [],
@@ -20,17 +31,27 @@ Prg = {"DirPrgParent":  DirPrgParent,
            "GuiLinesObjects": {}
 }
        }
+######################################################
+# import riverbank
+# # because of set_break we can see all line execution
+# Prg["debugger"].set_break("try/riverbank.py", 1)
+# Prg["debugger"].run("riverbank.main()")
+######################################################
+sys.path.append(os.path.join(DirPrgParent, "try/sentence-seeker"))
+sys.path.append(os.path.join(DirPrgParent, "try/sentence-seeker/src"))
+import prg_start
+Prg["debugger"].set_break("try/sentence-seeker/prg_start.py", 1)
+Prg["debugger"].run("prg_start.run()") # prg_start is created because I can import it, sentence-seeker has a dash
 
-import riverbank
-# because of set_break we can see all line execution
-Prg["debugger"].set_break("try/riverbank.py", 1)
-Prg["debugger"].run("riverbank.main()")
+######################################################
 
 print(Prg["debugger"].Root)
-Prg["debugger"].Root.html_create()
+Prg["debugger"].Root.html_create(Prg)
 
 for ExecNext in Prg["debugger"].ExecutionAll:
     print("\n\n", ExecNext)
+
+
 
 # for Id, NameSpaceDef in Prg["debugger"].NameSpaceDefinitions.items():
 #     print(NameSpaceDef)

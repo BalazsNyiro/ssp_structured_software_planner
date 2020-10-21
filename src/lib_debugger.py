@@ -1,5 +1,5 @@
 import bdb, pprint, sys, os
-from util import *
+from util_ssp import *
 
 class NameSpaceDefinition():
     DefCounter = 0
@@ -91,10 +91,19 @@ class NameSpaceOneCall():
         Out.append(f"{Prefix} -> {self.name()}")
         for Child in self.ChildrenCalls:
             Out.append(str(Child))
-        Out.append(f"{Prefix} <- {self.name()}: {self.RetVal}")
+
+        RetVal = self.RetVal
+        Limit = 40
+        if len(str(RetVal)) > Limit:
+            RetVal = str(RetVal)[:Limit]
+        Out.append(f"{Prefix} <- {self.name()}: {RetVal}")
+
         return "\n".join(Out)
 
-    def html_create(self, Dir="./html", FirstCall=True):
+    def html_create(self, Prg, Dir="./html", FirstCall=True):
+        # undisplayed function calls, example: __init__
+        if self.name() in Prg["hidden_calls_in_analyser"]:
+            return ""
 
         Prefix = " " * self.Level
 
@@ -123,7 +132,9 @@ class NameSpaceOneCall():
         Out.append(f"{Prefix} -> {LinkOpenBegin}{self.name()}{LinkClose}")
 
         for Child in self.ChildrenCalls:
-            Out.append(Child.html_create(FirstCall=False))
+            OutChild = Child.html_create(Prg, FirstCall=False)
+            if OutChild: # if OutChild == "" then skip, no empty line in debug output
+                Out.append(OutChild)
 
         Out.append(f"{Prefix} <- {LinkOpenDiff}{self.name()}{LinkClose}: {self.RetVal}")
 
