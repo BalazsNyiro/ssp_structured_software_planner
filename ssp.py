@@ -57,9 +57,6 @@ else:
 
 ######################################################
 
-util_ssp.file_write_simple("callstack.txt", Prg["debugger"].Root.to_str(Prg))
-#Prg["debugger"].Root.html_create(Prg)
-
 for ExecNext in Prg["debugger"].ExecutionAll:
     print("\n\n", ExecNext)
 

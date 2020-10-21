@@ -82,3 +82,30 @@ def diff_objects(Old, New, FirstCall=True):
         return New
 
     return f"can't create diff of objects: {str(A)} {str(B)}"
+
+
+def copy(Obj):
+    if is_simple(Obj): return Obj
+
+    if is_tuple(Obj):
+        New = []
+        for Elem in Obj:
+            New.append(copy(Elem))
+        return tuple(New)
+
+    if is_list(Obj):
+        New = []
+        for Elem in Obj:
+            New.append(copy(Elem))
+        return New
+
+    if is_dict(Obj):
+        Parent = dict()
+        for Key, Val in Obj.items():
+            if is_simple(Key):
+                Parent[Key] = copy(Val)
+        return Parent
+
+    # print("too:", type(Obj))
+    return "too complicated elem to duplicate"
+
