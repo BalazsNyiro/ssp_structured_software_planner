@@ -1,7 +1,9 @@
 import bdb, pprint, sys, os
 from util_ssp import *
+import linecache
 
 class NameSpaceDefinition():
+    NameLengthMax = 0
     DefCounter = 0
     def __init__(self, Id,
                  Name,
@@ -12,6 +14,9 @@ class NameSpaceDefinition():
         NameSpaceDefinition.DefCounter += 1
 
         self.FileName = FileName
+        if (Len:=len(Name)) > NameSpaceDefinition.NameLengthMax:
+            NameSpaceDefinition.NameLengthMax = Len
+
         self.Name = Name
         self.LinesSourceFile = LinesSourceFile
         self.LinesExecutedAllInNameSpaceDef = {}
@@ -86,14 +91,21 @@ class NameSpaceOneCall():
         return "NoDefName"
 
     def __str__(self):
+        self.to_str({"hidden_calls_in_analyser":[]})
+
+    def to_str(self, Prg):
+        if self.name() in Prg["hidden_calls_in_analyser"]:
+            return ""
         Prefix = " " * self.Level
         Out = []
         Out.append(f"{Prefix} -> {self.name()}")
         for Child in self.ChildrenCalls:
-            Out.append(str(Child))
+            OutChild = Child.to_str(Prg)
+            if OutChild: # if OutChild == "" then skip, no empty line in debug output
+                Out.append(OutChild)
 
         RetVal = self.RetVal
-        Limit = 40
+        Limit = 100
         if len(str(RetVal)) > Limit:
             RetVal = str(RetVal)[:Limit]
         Out.append(f"{Prefix} <- {self.name()}: {RetVal}")
@@ -122,7 +134,8 @@ class NameSpaceOneCall():
         # print("\nLocalsEnd", LocalsEnd)
 
         file_write_simple(os.path.join(Dir, FileLocalsBegin), "<pre>begin:" + pprint.pformat(LocalsBegin)+"</pre>")
-        file_write_simple(os.path.join(Dir, FileLocalsDiff),  "<pre> diff: " + pprint.pformat( diff_objects(LocalsBegin, LocalsEnd))+"</pre>")
+        #file_write_simple(os.path.join(Dir, FileLocalsDiff),  "<pre> diff: " + pprint.pformat( diff_objects(LocalsBegin, LocalsEnd))+"</pre>")
+        file_write_simple(os.path.join(Dir, FileLocalsDiff),  "<pre> diff: " + pprint.pformat( LocalsEnd)+"</pre>")
 
 
         Out = []
@@ -136,6 +149,10 @@ class NameSpaceOneCall():
             if OutChild: # if OutChild == "" then skip, no empty line in debug output
                 Out.append(OutChild)
 
+        RetVal = self.RetVal
+        Limit = 100
+        if len(str(RetVal)) > Limit:
+            RetVal = str(RetVal)[:Limit]
         Out.append(f"{Prefix} <- {LinkOpenDiff}{self.name()}{LinkClose}: {self.RetVal}")
 
         if FirstCall:
@@ -148,11 +165,10 @@ class NameSpaceOneCall():
 class ExecLine():
     FileNameLenMax = 0
     LineLenMax = 0
-
     def __init__(self, FileName, LineNum, Line, FrameLocals, NameSpaceOneCall):
         self.FileName = FileName
         self.LineNum = LineNum
-        self.Line = Line
+        self.Line = Line.rstrip()
         self.Locals = self.filterOnlyUserVariables(FrameLocals)
         self.NameSpaceOneCallWhereExecuted = NameSpaceOneCall
 
@@ -163,8 +179,19 @@ class ExecLine():
             ExecLine.LineLenMax = Len
 
     def __str__(self):
-        # return f"EXEC: {self.LineNum} {self.Line} {self.FileName}\nLOCAL " + str(self.Locals)
         return f"\n========================\nLOCAL " + pprint.pformat(self.Locals) + f"\nnext > {self.LineNum} {self.Line}..........................."
+
+    def to_file(self):
+        # FilesSkipped = ("posixpath.py", "os.py")
+        #
+        # if self.FileName.split(os.path.sep)[-1] in FilesSkipped:
+        #     return ""
+        # FIXME: linux specific solution
+        if "/usr/lib" in self.FileName:
+            return ""
+        #return f"{self.LineNum:>3} {self.FileName.split(os.path.sep)[-1]} {self.Line}"
+        NameLengthMax = self.NameSpaceOneCallWhereExecuted.NameSpaceDef.NameLengthMax
+        return f"{self.LineNum:>3} {self.NameSpaceOneCallWhereExecuted.NameSpaceDef.Name:>{NameLengthMax}} {self.Line}"
 
     def filterOnlyUserVariables(self, FrameLocals):
         # in this Frame we can find special vars, keys, everything that needed to execute Py program,
@@ -173,11 +200,17 @@ class ExecLine():
         def copy(Obj):
             if is_simple(Obj): return Obj
 
-            if is_list(Obj):
-                Parent = []
+            if is_tuple(Obj):
+                New = []
                 for Elem in Obj:
-                    Parent.append(copy(Elem))
-                return Parent
+                    New.append(copy(Elem))
+                return tuple(New)
+
+            if is_list(Obj):
+                New = []
+                for Elem in Obj:
+                    New.append(copy(Elem))
+                return New
 
             if is_dict(Obj):
                 Parent = dict()
@@ -198,10 +231,10 @@ class Debugger(bdb.Bdb):
     SourceFiles = {}
     ExecutionAll = []
 
-    def user_call(self, frame, args):
-        Name = frame.f_code.co_name or "<unknown>"
-        FileName = self.canonic(frame.f_code.co_filename)
-        LineNumDef = frame.f_lineno
+    def user_call(self, Frame, args):
+        Name = Frame.f_code.co_name or "<unknown>"
+        FileName = self.canonic(Frame.f_code.co_filename)
+        LineNumDef = Frame.f_lineno
         if FileName not in Debugger.SourceFiles:
             Debugger.SourceFiles[FileName] = ["# hidden zero line, debugger is 1 based'"]
             Debugger.SourceFiles[FileName].extend(file_read_lines(FileName))
@@ -232,20 +265,19 @@ class Debugger(bdb.Bdb):
 
 
     def user_line(self, Frame):
-        import linecache
         Name = Frame.f_code.co_name
         if not Name: Name = '???'
         Fn = self.canonic(Frame.f_code.co_filename)
 
         LineNo = Frame.f_lineno
         Line = linecache.getline(Fn, LineNo, Frame.f_globals)
-        print('+++ USERLINE', Debugger.NameSpaceActualCall.name(), Fn, LineNo, Name, ':', Line.strip(), )
+        print('\n+++ USERLINE', Debugger.NameSpaceActualCall.name(), Fn, LineNo, Name, ':', Line.strip(), )
 
         LineInserted = f"{LineNo} {Line}"
         if Fn in Debugger.SourceFiles:
             LineInserted = f"{LineNo} {Debugger.SourceFiles[Fn][LineNo]}"
 
-        print(">>>>>>>>>>> id:", id(Frame.f_locals), Frame.f_locals)
+        print(f"+++      flocals id:  {id(Frame.f_locals)}", Frame.f_locals)
         # LineObj = ExecLine(Fn, LineNo, LineInserted, Frame.f_locals, Debugger.NameSpaceActualCall)
         # FileName is "<string>" at first execution so I use the namespace's default
         LineObj = ExecLine(Debugger.NameSpaceActualCall.NameSpaceDef.FileName, LineNo, Line, Frame.f_locals, Debugger.NameSpaceActualCall)
@@ -257,9 +289,15 @@ class Debugger(bdb.Bdb):
     def user_return(self, Frame, RetVal):
         Name = Frame.f_code.co_name or "<unknown>"
         LineNumRet = Frame.f_lineno
-        print('+++ return', Name, RetVal, LineNumRet)
+        FileName = self.canonic(Frame.f_code.co_filename)
+        Line = linecache.getline(FileName, LineNumRet, Frame.f_globals)
+        print('+++ return', f"flocal id: {id(Frame.f_locals)}", Name, RetVal, LineNumRet, Line)
 
         Debugger.NameSpaceActualCall.RetVal = RetVal
+
+        #
+        # LineObj = ExecLine(FileName, LineNumRet, Line, Frame.f_locals, Debugger.NameSpaceActualCall)
+        # Debugger.NameSpaceActualCall.ExecLines.append(LineObj)
 
         if Debugger.NameSpaceActualCall.Parent:
             Debugger.NameSpaceActualCall = Debugger.NameSpaceActualCall.Parent

@@ -54,11 +54,12 @@ def diff_dicts(Old, New):
                 Diff[Key] = diff_objects(Old[Key], New[Key])
     return Diff
 
+# differences: the Old expands with new elems, typically
 def diff_lists(Old, New):
     Diff = []
     for Id, Elem in enumerate(New):
-        Difference = diff_objects(Old[Id], New[Id])
-        Diff.append(Difference)
+        if Elem not in Old:
+            Diff.append(Elem)
     return Diff
 
 # return with difference.

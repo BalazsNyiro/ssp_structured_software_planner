@@ -44,8 +44,13 @@ def transfer(From, To, Amount, CurrencyOfTransaction):
     return "transfer"
 
 def main(PrgArgs=[]):
-    print("PRGARGS", PrgArgs)
+    for File in files_abspath_collect_from_dir("."):
+        print(File)
+    return
 
+
+    print("PRGARGS", PrgArgs)
+    Logs = []
     # direct test, simple calc fun
     # Change = change(2, "GBP", "USD")
     # return Change
@@ -58,9 +63,25 @@ def main(PrgArgs=[]):
     transfer(AccJim, AccRestaurant, 1, "EUR")
 
     # dinner party, Bob pay his bill to Jim
-    TransferReply = transfer(AccBob, AccJim, 0.4, "GBP")
-
+    transfer(AccBob, AccJim, 0.4, "GBP")
     return "End"
+
+import os
+def files_abspath_collect_from_dir(DirRoot, Recursive=False):
+    FilesAbsPath = []
+    FilesAbsPath += ["1"]
+    #return FilesAbsPath
+
+    FilesAbsPath = []
+    for DirPath, DirNames, FileNames in os.walk(DirRoot):
+        for Elem in ([os.path.join(DirPath, File) for File in FileNames]):
+            FilesAbsPath.append(Elem)
+
+        # https://stackoverflow.com/questions/4117588/non-recursive-os-walk
+        if not Recursive:
+            break
+    return giveBack(FilesAbsPath)
+
 
 if __name__ == "__main__":
     main()
