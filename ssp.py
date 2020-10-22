@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import os, sys
+import os, sys, pickle
 DirPrgParent = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(DirPrgParent, "src"))
 sys.path.append(os.path.join(DirPrgParent, "try"))
@@ -41,24 +41,32 @@ Prg = {"DirPrgParent":  DirPrgParent,
            "GuiLinesObjects": {}
 }
        }
-######################################################
-if False:
-    import riverbank
-    # because of set_break we can see all line execution
-    Prg["debugger"].set_break("try/riverbank.py", 1)
-    Prg["debugger"].run("riverbank.main()")
+FilePickle = 'data.pickle'
+if os.path.isfile(FilePickle):
+    with open(FilePickle, 'rb') as f:
+        Prg["debugger"].ExecutionAll = pickle.load(f)
 else:
     ######################################################
-    sys.path.append(os.path.join(DirPrgParent, "try/sentence-seeker"))
-    sys.path.append(os.path.join(DirPrgParent, "try/sentence-seeker/src"))
-    import prg_start
-    Prg["debugger"].set_break("try/sentence-seeker/prg_start.py", 1)
-    Prg["debugger"].run("prg_start.run()") # prg_start is created because I can import it, sentence-seeker has a dash
+    if False:
+        import riverbank
+        # because of set_break we can see all line execution
+        Prg["debugger"].set_break("try/riverbank.py", 1)
+        Prg["debugger"].run("riverbank.main()")
+    else:
+        ######################################################
+        sys.path.append(os.path.join(DirPrgParent, "try/sentence-seeker"))
+        sys.path.append(os.path.join(DirPrgParent, "try/sentence-seeker/src"))
+        import prg_start
+        Prg["debugger"].set_break("try/sentence-seeker/prg_start.py", 1)
+        Prg["debugger"].run("prg_start.run()") # prg_start is created because I can import it, sentence-seeker has a dash
 
-######################################################
+    ######################################################
+
+    with open(FilePickle, 'wb') as f:
+        pickle.dump(Prg["debugger"].ExecutionAll, f, pickle.HIGHEST_PROTOCOL)
 
 for ExecNext in Prg["debugger"].ExecutionAll:
-    print("\n\n", ExecNext)
+   print("\n\n", ExecNext)
 
 util_ssp.file_write_simple("exec_all.txt", "\n".join([ ExecLine.to_file() for ExecLine in Prg["debugger"].ExecutionAll if ExecLine.to_file()!=""]))
 
