@@ -16,6 +16,8 @@ class ExecLine():
         self.Line = Line.rstrip()
         self.Locals = self.filterOnlyUserVariables(FrameLocals)
 
+        self.Type = "ExecLine"
+
         if Len := len(FileName) > ExecLine.FileNameLenMax:
             ExecLine.FileNameLenMax = Len
 
@@ -42,20 +44,6 @@ class ExecLine():
         # in this Frame we can find special vars, keys, everything that needed to execute Py program,
         # we need only simple data types in modelling/program planning system
         return copy(FrameLocals)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 class Debugger(bdb.Bdb):
     SourceFiles = {}

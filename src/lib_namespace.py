@@ -8,6 +8,7 @@ HiddenCallsGeneral = {
     "_get_sep",
     "__contains__",
     "__del__",
+    "__new__",
     "_joinrealpath",
     "__getattr__",
     "__getitem__",
@@ -39,9 +40,9 @@ class NameSpaceCall():
         self.NameSpace = NameSpaceDef(Name, FileName, LineNum)
         self.Name = Name
         self.Caller = Caller
-        self.Calls = []
+        self.Lines = []
         self.Level = Level
-
+        self.Type = "NameSpaceCall"
 
         self.DisplayThisCall = True
         self.DisplayChildren = True
@@ -52,24 +53,25 @@ class NameSpaceCall():
         if Name in Prg["HideChildrenInTheseCalls"]:
             self.DisplayChildren = False
 
-
-    def call(self, Called):
-        self.Calls.append(Called)
-
     def __str__(self):
         Indent = "  " * self.Level
         #print(f"{Indent} {self.Name}")
 
         ChildrenOut = []
         if self.DisplayChildren:
-            for Call in self.Calls:
-                if Call.DisplayThisCall:
-                    if CallDisplayedText := str(Call):
-                       ChildrenOut.append(CallDisplayedText)
+            for Elem in self.Lines:
+
+                if Elem.Type == "NameSpaceCall":
+                    if Elem.DisplayThisCall:
+                        if CallDisplayedText := str(Elem):
+                           ChildrenOut.append(CallDisplayedText)
+
+                if Elem.Type == "ExecLine":
+                    #   : means: simmple line in Call
+                    ChildrenOut.append(Indent + "  :" + Elem.Line)
 
         NewLineBeforeChildren = "" if not ChildrenOut else "\n"
-
-        return f"{Indent} {self.Name}{NewLineBeforeChildren}" + "\n".join(ChildrenOut)
+        return f"{Indent}{self.Name.upper()}{NewLineBeforeChildren}" + "\n".join(ChildrenOut)
 
 def name_space_calls_create(Prg):
     NameSpaceRoot = None
@@ -93,9 +95,12 @@ def name_space_calls_create(Prg):
                                          ExecLine.LineNum,
                                          Level = NameSpaceActual.Level+1)
 
-            NameSpaceActual.Calls.append(NameSpaceNew)
+            NameSpaceActual.Lines.append(NameSpaceNew)
             NameSpaceNew.Caller = NameSpaceActual
             NameSpaceActual = NameSpaceNew
+
+        if ExecLine.Event == "line":
+            NameSpaceActual.Lines.append(ExecLine)
 
         elif ExecLine.Event == "ret":
             NameSpaceActual = NameSpaceActual.Caller
