@@ -6,32 +6,17 @@ DirPrgParent = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(DirPrgParent, "src"))
 sys.path.append(os.path.join(DirPrgParent, "try"))
 
-import lib_tkinter_ssp, lib_debugger, util_ssp
+import lib_tkinter_ssp, lib_debugger, util_ssp, lib_namespace
 
 ########################################
-Prg = {"DirPrgParent":  DirPrgParent,
+Prg = {"Saved": {
+           "HideChildrenInTheseCalls": set(),
+           "HiddenCallsPrgSpecific": set(),
+           "ExecutionAll": [],
+            },
+       "DirPrgParent":  DirPrgParent,
        "Gui": dict(),
        "debugger": lib_debugger.Debugger(),
-       "hidden_calls_in_analyser": {
-            "__enter__",
-            "__exit__",
-            "_get_sep",
-            "__contains__",
-            "_joinrealpath",
-            "__getattr__",
-            "__getitem__",
-            "__init__",
-            "join", "isfile","isdir", "shell","abspath", "walk",
-
-
-            "acc_info",
-
-           "expanduser",
-           "file_read_all",
-           "loads",
-           "log",
-           "utf8_conversion_with_warning",
-       },
        "Player": {
            "ExecNext": -1,
            "ProcSteps": [],
@@ -39,12 +24,13 @@ Prg = {"DirPrgParent":  DirPrgParent,
            "CanvasWidget": None,
            "ProcStepPointer": None,
            "GuiLinesObjects": {}
-}
-       }
+           }
+        }
+
 FilePickle = 'data.pickle'
 if os.path.isfile(FilePickle):
     with open(FilePickle, 'rb') as f:
-        Prg["debugger"].ExecutionAll = pickle.load(f)
+        Prg["Saved"] = pickle.load(f)
 else:
     ######################################################
     if False:
@@ -57,22 +43,30 @@ else:
         sys.path.append(os.path.join(DirPrgParent, "try/sentence-seeker"))
         sys.path.append(os.path.join(DirPrgParent, "try/sentence-seeker/src"))
         import prg_start
+
+        Prg["Saved"]["HideChildrenInTheseCalls"] = {"file_read_all"}
+        Prg["Saved"]["HiddenCallsPrgSpecific"] = {
+            "acc_info",
+            "expanduser",
+            #"file_read_all",
+            "loads",
+            "log",
+            "utf8_conversion_with_warning",
+        }
         Prg["debugger"].set_break("try/sentence-seeker/prg_start.py", 1)
         Prg["debugger"].run("prg_start.run()") # prg_start is created because I can import it, sentence-seeker has a dash
 
+        Prg["Saved"]["ExecutionAll"] = Prg["debugger"].ExecutionAll
     ######################################################
 
     with open(FilePickle, 'wb') as f:
-        pickle.dump(Prg["debugger"].ExecutionAll, f, pickle.HIGHEST_PROTOCOL)
+        pickle.dump(Prg["Saved"], f, pickle.HIGHEST_PROTOCOL)
 
-for ExecNext in Prg["debugger"].ExecutionAll:
-   print("\n\n", ExecNext)
+NameSpaceRoot = lib_namespace.name_space_calls_create(Prg)
+print(NameSpaceRoot)
+util_ssp.file_write_simple("exec_all.txt", "\n".join([ ExecLine.to_file() for ExecLine in Prg["Saved"]["ExecutionAll"] if ExecLine.to_file()!=""]))
 
-util_ssp.file_write_simple("exec_all.txt", "\n".join([ ExecLine.to_file() for ExecLine in Prg["debugger"].ExecutionAll if ExecLine.to_file()!=""]))
 
-
-# for Id, NameSpaceDef in Prg["debugger"].NameSpaceDefinitions.items():
-#     print(NameSpaceDef)
 sys.exit()
 
 CanvasWidget = None
