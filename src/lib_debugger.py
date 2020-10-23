@@ -31,8 +31,8 @@ class ExecLine():
         # if self.FileName.split(os.path.sep)[-1] in FilesSkipped:
         #     return ""
         # FIXME: linux specific solution
-        if "/usr/lib" in self.FileName:
-            return ""
+        # if "/usr/lib" in self.FileName:
+        #     return ""
         LineNumDisplayed = str(self.LineNum).strip()
         if not LineNumDisplayed:
             LineNumDisplayed = "-"
@@ -46,9 +46,21 @@ class ExecLine():
 
 
 
+
+
+
+
+
+
+
+
+
+
+
 class Debugger(bdb.Bdb):
     SourceFiles = {}
     ExecutionAll = []
+    Verbose = True
 
     def frame_info(self, Frame):
         NameSpace = Frame.f_code.co_name or "<unknown>"
@@ -66,31 +78,39 @@ class Debugger(bdb.Bdb):
         return NameSpace, FileName, LineNum, Line
 
     def user_call(self, Frame, args):
+
         Name, FileName, LineNumDef, Line = self.frame_info(Frame)
 
-        if FileName not in Debugger.SourceFiles:
-            Debugger.SourceFiles[FileName] = ["# hidden zero line, debugger is 1 based'"]
-            Debugger.SourceFiles[FileName].extend(file_read_lines(FileName))
+        if Debugger.Verbose:
+            print("+++ call", Name, LineNumDef, args)
 
-        print("+++ call", Name, args, LineNumDef, FileName)
+        # for loop over list:
+        # if Name[0] =="<":
+        #     return # list comprehension or other inner call, not real user called fun
+
+        # if FileName not in Debugger.SourceFiles:
+        #     Debugger.SourceFiles[FileName] = ["# hidden zero line, debugger is 1 based'"]
+        #     Debugger.SourceFiles[FileName].extend(file_read_lines(FileName))
 
         LineObj = ExecLine(Name, FileName, LineNumDef, Line, Frame.f_locals, Event="call")
         Debugger.ExecutionAll.append(LineObj)
 
     def user_line(self, Frame):
         Name, FileName, LineNo, Line = self.frame_info(Frame)
-        print('\n+++ USERLINE', FileName, LineNo, Name, ':', Line.strip(), )
+        if Debugger.Verbose:
+            print('+++ line  ', Name, LineNo, ':', Line.strip(), )
+            #print(f"+++      flocals id:  {id(Frame.f_locals)}", Frame.f_locals)
         LineInserted = f"{LineNo} {Line}"
-        print(f"+++      flocals id:  {id(Frame.f_locals)}", Frame.f_locals)
         LineObj = ExecLine(Name, FileName, LineNo, LineInserted, Frame.f_locals, Event="line")
         Debugger.ExecutionAll.append(LineObj)
 
     def user_return(self, Frame, RetVal):
         Name, FileName, LineNumRet, Line = self.frame_info(Frame)
-        print('+++ return', f"flocal id: {id(Frame.f_locals)}", Name, RetVal, LineNumRet, Line)
+        if Debugger.Verbose:
+            print('+++ return', Name, LineNumRet, f"flocal id: {id(Frame.f_locals)}", RetVal, Line)
         LineObj = ExecLine(Name, FileName, LineNumRet, Line, Frame.f_locals, Event="ret")
         Debugger.ExecutionAll.append(LineObj)
 
     def user_exception(self, frame, exc_stuff):
-        #print('+++ exception', exc_stuff)
-        self.set_continue()
+        if Debugger.Verbose:
+            print('+++ except', exc_stuff)

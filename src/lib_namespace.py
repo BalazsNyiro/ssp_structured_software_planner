@@ -1,7 +1,7 @@
 NameSpaceDefinitions = {}
 NameSpaceMaxNameLength = 0
 
-HiddenCallsGeneral = {
+HiddenCallsGeneralXX = {
     "__enter__",
     "__exit__",
     "_get_sep",
@@ -19,6 +19,7 @@ HiddenCallsGeneral = {
     "walk",
 
 }
+HiddenCallsGeneral = set()
 
 class NameSpaceDef():
 
@@ -40,6 +41,10 @@ class NameSpaceCall():
         self.Calls = []
         self.Level = Level
 
+
+
+
+
         self.DisplayThisCall = True
         self.DisplayChildren = True
 
@@ -48,24 +53,28 @@ class NameSpaceCall():
 
         if Name in Prg["Saved"]["HideChildrenInTheseCalls"]:
             self.DisplayChildren = False
+        self.DisplayThisCall = True
+        self.DisplayChildren = True
+
+
+
 
     def call(self, Called):
         self.Calls.append(Called)
 
     def __str__(self):
-        if not self.DisplayThisCall:
-            return ""
+        Indent = "  " * self.Level
+        #print(f"{Indent} {self.Name}")
 
         ChildrenOut = []
         if self.DisplayChildren:
             for Call in self.Calls:
-                if self.DisplayChildren:
+                if Call.DisplayThisCall:
                     if CallDisplayedText := str(Call):
                        ChildrenOut.append(CallDisplayedText)
 
         NewLineBeforeChildren = "" if not ChildrenOut else "\n"
 
-        Indent = " " * self.Level
         return f"{Indent} {self.Name}{NewLineBeforeChildren}" + "\n".join(ChildrenOut)
 
 def name_space_calls_create(Prg):

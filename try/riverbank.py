@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import time, os
 
 AccBob        = {"owner": "Bob", "Balance": 124, "Currency": "EUR"}
 AccJim        = {"owner": "Jim", "Balance": 163, "Currency": "USD"}
@@ -13,6 +14,9 @@ Rates = {("EUR", "GBP") : 0.6,
          ("GBP", "USD") : 1.5,
          ("USD", "EUR") : 0.7,
          ("USD", "GBP") : 0.6 }
+
+def trx_time():
+    return int(time.time())
 
 def change(AmountFrom, CurrencyFrom, CurrencyTo):
     if CurrencyFrom == CurrencyTo:
@@ -41,12 +45,14 @@ def transfer(From, To, Amount, CurrencyOfTransaction):
     acc_info(From)
     acc_info(To)
     print()
-    return "transfer"
+
+    return trx_time()
 
 def main(PrgArgs=[]):
-    for File in files_abspath_collect_from_dir("."):
-        print(File)
-    return
+    # Files, Something = files_abspath_collect_from_dir(".")
+    # for File in Files:
+    #     print(File, Something)
+    # return Files
 
 
     print("PRGARGS", PrgArgs)
@@ -64,14 +70,11 @@ def main(PrgArgs=[]):
 
     # dinner party, Bob pay his bill to Jim
     transfer(AccBob, AccJim, 0.4, "GBP")
-    return "End"
 
-import os
+
+    return files_abspath_collect_from_dir(".")
+
 def files_abspath_collect_from_dir(DirRoot, Recursive=False):
-    FilesAbsPath = []
-    FilesAbsPath += ["1"]
-    #return FilesAbsPath
-
     FilesAbsPath = []
     for DirPath, DirNames, FileNames in os.walk(DirRoot):
         for Elem in ([os.path.join(DirPath, File) for File in FileNames]):
@@ -80,7 +83,7 @@ def files_abspath_collect_from_dir(DirRoot, Recursive=False):
         # https://stackoverflow.com/questions/4117588/non-recursive-os-walk
         if not Recursive:
             break
-    return giveBack(FilesAbsPath)
+    return FilesAbsPath
 
 
 if __name__ == "__main__":
