@@ -1,7 +1,8 @@
 NameSpaceDefinitions = {}
 NameSpaceMaxNameLength = 0
 
-HiddenCallsGeneralXX = {
+HiddenCallsGeneral = {
+    "deepcopy",
     "__enter__",
     "__exit__",
     "_get_sep",
@@ -12,14 +13,14 @@ HiddenCallsGeneralXX = {
     "__getitem__",
     "__init__",
     "join",
-    "isfile",
+    #"isfile",
     "isdir",
-    "shell",
+    #"shell",
     "abspath",
-    "walk",
+    #"walk",
 
 }
-HiddenCallsGeneral = set()
+# HiddenCallsGeneral = set()
 
 class NameSpaceDef():
 
@@ -42,21 +43,14 @@ class NameSpaceCall():
         self.Level = Level
 
 
-
-
-
         self.DisplayThisCall = True
         self.DisplayChildren = True
 
-        if Name in HiddenCallsGeneral.union(Prg["Saved"]["HiddenCallsPrgSpecific"]):
+        if Name in HiddenCallsGeneral.union(Prg["HiddenCallsPrgSpecific"]):
             self.DisplayThisCall = False
 
-        if Name in Prg["Saved"]["HideChildrenInTheseCalls"]:
+        if Name in Prg["HideChildrenInTheseCalls"]:
             self.DisplayChildren = False
-        self.DisplayThisCall = True
-        self.DisplayChildren = True
-
-
 
 
     def call(self, Called):
