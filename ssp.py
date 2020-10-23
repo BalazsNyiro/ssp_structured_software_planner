@@ -66,6 +66,7 @@ else:
         "file_convert_to_txt_if_necessary",
         "file_create_if_necessary",
         "file_read_all",
+        "file_write_utf8_error_avoid",
         "file_read_lines",
         "filename_extension",
         "files_abspath_collect_from_dir",
@@ -108,6 +109,7 @@ with open(FilePickle, 'wb') as f:
 
 NameSpaceRoot = lib_namespace.name_space_calls_create(Prg)
 print(NameSpaceRoot)
+util_ssp.file_write_simple("happened.txt", str(NameSpaceRoot))
 for ExecLine in Prg["Saved"]["ExecutionAll"]:
     #print(ExecLine.Event, ExecLine.Name)
     pass

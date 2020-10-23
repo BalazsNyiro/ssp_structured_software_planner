@@ -18,6 +18,7 @@ HiddenCallsGeneral = {
     "isdir",
     #"shell",
     "abspath",
+    "closed",
     #"walk",
 
 }
