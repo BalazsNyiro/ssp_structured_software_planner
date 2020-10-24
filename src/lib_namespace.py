@@ -74,12 +74,12 @@ class NameSpaceCall():
         NewLineBeforeChildren = "" if not ChildrenOut else "\n"
         return f"{Indent}{self.Name.upper()}{NewLineBeforeChildren}" + "\n".join(ChildrenOut)
 
-def name_space_calls_create(Prg):
+def name_space_calls_create(Prg, PrgSaved):
     NameSpaceRoot = None
     NameSpaceActual = None
 
-    for ExecLine in Prg["Saved"]["ExecutionAll"]:
-        # print("\n>>>", ExecLine.Event, type(ExecLine.Name))
+    for ExecLine in PrgSaved["ExecutionAll"]:
+        print("\n>>>", ExecLine.Event, type(ExecLine.Name))
         if not NameSpaceRoot:
             NameSpaceRoot = NameSpaceCall(Prg,
                                           ExecLine.Name,

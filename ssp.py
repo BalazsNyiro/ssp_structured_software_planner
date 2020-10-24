@@ -9,9 +9,11 @@ sys.path.append(os.path.join(DirPrgParent, "try"))
 import lib_tkinter_ssp, lib_debugger, util_ssp, lib_namespace
 
 ########################################
-Prg = {"Saved": {
-           "ExecutionAll": [],
-            },
+PrgSaved = {
+    "ExecutionAll": [],
+}
+
+Prg = {
     "HideChildrenInTheseCalls": set(),
     "HiddenCallsPrgSpecific": set(),
 
@@ -32,7 +34,7 @@ FilePickle = 'data.pickle'
 PickleLoaded = False
 if os.path.isfile(FilePickle):
     with open(FilePickle, 'rb') as f:
-        Prg["Saved"] = pickle.load(f)
+        PrgSaved = pickle.load(f)
         PickleLoaded = True
 
 ######################################################
@@ -43,8 +45,9 @@ if False:
 
     if not PickleLoaded:
         Prg["debugger"].run("riverbank.main()")
-        Prg["Saved"]["ExecutionAll"] = Prg["debugger"].ExecutionAll
-    #Prg["debugger"].run("test('.')")
+        for ExecutionLine in Prg["debugger"].ExecutionAll:
+            PrgSaved["ExecutionAll"].append(ExecutionLine)
+        #Prg["debugger"].run("test('.')")
 else:
     ######################################################
     sys.path.append(os.path.join(DirPrgParent, "try/sentence-seeker"))
@@ -102,18 +105,20 @@ else:
 
     if not PickleLoaded:
         Prg["debugger"].run("prg_start.run()") # prg_start is created because I can import it, sentence-seeker has a dash
-        Prg["Saved"]["ExecutionAll"] = Prg["debugger"].ExecutionAll
+
+        for ExecutionLine in Prg["debugger"].ExecutionAll:
+            PrgSaved["ExecutionAll"].append(ExecutionLine)
 
 with open(FilePickle, 'wb') as f:
-    pickle.dump(Prg["Saved"], f, pickle.HIGHEST_PROTOCOL)
+    pickle.dump(PrgSaved, f, pickle.HIGHEST_PROTOCOL)
 
-NameSpaceRoot = lib_namespace.name_space_calls_create(Prg)
+NameSpaceRoot = lib_namespace.name_space_calls_create(Prg, PrgSaved)
 print(NameSpaceRoot)
 util_ssp.file_write_simple("happened.txt", str(NameSpaceRoot))
-for ExecLine in Prg["Saved"]["ExecutionAll"]:
+for ExecLine in PrgSaved["ExecutionAll"]:
     #print(ExecLine.Event, ExecLine.Name)
     pass
-util_ssp.file_write_simple("exec_all.txt", "\n".join([ ExecLine.to_file() for ExecLine in Prg["Saved"]["ExecutionAll"] if ExecLine.to_file()!=""]))
+util_ssp.file_write_simple("exec_all.txt", "\n".join([ ExecLine.to_file() for ExecLine in PrgSaved["ExecutionAll"] if ExecLine.to_file()!=""]))
 
 
 sys.exit()
